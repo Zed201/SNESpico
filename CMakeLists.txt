@@ -14,7 +14,10 @@ add_executable(SNESpico
 )
 
 # adicionar as libs de features específicas
-target_link_libraries(SNESpico pico_stdlib)
+target_link_libraries(SNESpico pico_stdlib hardware_pwm hardware_adc)
+
+pico_enable_stdio_usb(SNESpico 1)
+pico_enable_stdio_uart(SNESpico 0)
 
 # criar o map/bin/hex/uf2 
 pico_add_extra_outputs(SNESpico)

@@ -18,7 +18,7 @@ sudo apt install cmake git python3 build-essential gcc-arm-none-eabi libnewlib-a
 ```
 
 ```
-sudo pacman -Sy cmake git python3 build-essential gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+sudo pacman -Sy cmake git python3 base-devel arm-none-eabi-newlib arm-none-eabi-gcc
 ```
 
 #### Comandos de build

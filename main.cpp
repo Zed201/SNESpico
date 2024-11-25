@@ -4,6 +4,9 @@
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
 #include "hardware/adc.h"
+#include "pico/multicore.h"
+#include "hardware/irq.h"
+#include <string.h>
 
 #define D0 0
 #define D1 1
@@ -16,6 +19,12 @@
 
 #define RS_PIN 10
 #define EN_PIN 11
+
+#define COMMAND 1
+#define CHARACTER (1 << 1)
+#define STRING (1 << 2)
+
+mutex_t mtx;
 
 uint32_t millis()
 {
@@ -55,41 +64,126 @@ void init()
     gpio_set_dir(EN_PIN, GPIO_OUT);
 }
 
+void lcd_interrupt_handler()
+{
+    mutex_enter_blocking(&mtx);
+    uint8_t type = multicore_fifo_pop_blocking();
+
+    if (type == STRING)
+    {
+        while (multicore_fifo_rvalid())
+        {
+            uint8_t data = multicore_fifo_pop_blocking();
+
+            gpio_put(EN_PIN, true);
+            gpio_put(RS_PIN, true);
+
+            gpio_put(D0, data & 1);
+            gpio_put(D1, data & 2);
+            gpio_put(D2, data & 4);
+            gpio_put(D3, data & 8);
+            gpio_put(D4, data & 0x10);
+            gpio_put(D5, data & 0x20);
+            gpio_put(D6, data & 0x40);
+            gpio_put(D7, data & 0x80);
+
+            gpio_put(EN_PIN, false);
+            gpio_put(RS_PIN, true);
+            busy_wait_ms(5);
+        }
+    }
+    else if (type == COMMAND)
+    {
+        uint8_t data = multicore_fifo_pop_blocking();
+
+        gpio_put(EN_PIN, true);
+        gpio_put(RS_PIN, false);
+
+        gpio_put(D0, data & 1);
+        gpio_put(D1, data & 2);
+        gpio_put(D2, data & 4);
+        gpio_put(D3, data & 8);
+        gpio_put(D4, data & 0x10);
+        gpio_put(D5, data & 0x20);
+        gpio_put(D6, data & 0x40);
+        gpio_put(D7, data & 0x80);
+
+        gpio_put(EN_PIN, false);
+        busy_wait_ms(5);
+    }
+    else if (type == CHARACTER)
+    {
+        uint8_t data = multicore_fifo_pop_blocking();
+
+        gpio_put(EN_PIN, true);
+        gpio_put(RS_PIN, true);
+
+        gpio_put(D0, data & 1);
+        gpio_put(D1, data & 2);
+        gpio_put(D2, data & 4);
+        gpio_put(D3, data & 8);
+        gpio_put(D4, data & 0x10);
+        gpio_put(D5, data & 0x20);
+        gpio_put(D6, data & 0x40);
+        gpio_put(D7, data & 0x80);
+
+        gpio_put(EN_PIN, false);
+        gpio_put(RS_PIN, true);
+        busy_wait_ms(5);
+    }
+    
+    mutex_exit(&mtx);
+    multicore_fifo_clear_irq();
+}
+
+void lcd_core1()
+{
+    multicore_fifo_clear_irq();
+    irq_set_exclusive_handler(SIO_IRQ_PROC1, lcd_interrupt_handler);
+    irq_set_enabled(SIO_IRQ_PROC1, true);
+
+    while (true)
+    {
+        tight_loop_contents();
+    }
+}
+
 void send_command(uint8_t command)
 {
-    gpio_put(EN_PIN, true);
-    gpio_put(RS_PIN, false);
+    mutex_enter_blocking(&mtx);
 
-    gpio_put(D0, command & 1);
-    gpio_put(D1, command & 2);
-    gpio_put(D2, command & 4);
-    gpio_put(D3, command & 8);
-    gpio_put(D4, command & 0x10);
-    gpio_put(D5, command & 0x20);
-    gpio_put(D6, command & 0x40);
-    gpio_put(D7, command & 0x80);
+    multicore_fifo_push_blocking(COMMAND);
+    multicore_fifo_push_blocking(command);
 
-    gpio_put(EN_PIN, false);
-    sleep_ms(60);
+    mutex_exit(&mtx);
 }
 
 void send_character(uint8_t character)
 {
-    gpio_put(EN_PIN, true);
-    gpio_put(RS_PIN, true);
+    mutex_enter_blocking(&mtx);
 
-    gpio_put(D0, character & 1);
-    gpio_put(D1, character & 2);
-    gpio_put(D2, character & 4);
-    gpio_put(D3, character & 8);
-    gpio_put(D4, character & 0x10);
-    gpio_put(D5, character & 0x20);
-    gpio_put(D6, character & 0x40);
-    gpio_put(D7, character & 0x80);
+    multicore_fifo_push_blocking(CHARACTER);
+    multicore_fifo_push_blocking(character);
 
-    gpio_put(EN_PIN, false);
-    gpio_put(RS_PIN, true);
-    sleep_ms(60);
+    mutex_exit(&mtx);
+}
+
+void send_string(const char *str)
+{
+    uint32_t size = strlen(str);
+
+    uint32_t i = 0;
+    while (i < size)
+    {
+        mutex_enter_blocking(&mtx);
+    
+        multicore_fifo_push_blocking(STRING);
+
+        for (uint32_t j = 0; j < 4 && i < size; j++, i++)
+            multicore_fifo_push_blocking(str[i]);
+    
+        mutex_exit(&mtx);
+    }
 }
 
 int main() 
@@ -98,51 +192,21 @@ int main()
 
     init();
 
-    /*
-    gpio_init(LED_PIN);
-    gpio_set_function(LED_PIN, GPIO_FUNC_PWM);
-    pwm_set_gpio_level(LED_PIN, 0);
-    uint32_t sliceNum = pwm_gpio_to_slice_num(LED_PIN);
-    pwm_set_enabled(sliceNum, true);
+    mutex_init(&mtx);
 
-    adc_init();
-    adc_gpio_init(POT_PIN);
-    adc_select_input(ADC_NUM);
-    */
+    multicore_launch_core1(lcd_core1);
 
-   const uint32_t size = 12;
-   char str[size] = "Hello World";
+    const uint32_t size = 12;
+    char str[size] = "Hello World";
+
+    sleep_ms(10000);
 
     send_command(0x0f);
     send_command(0x01);
-
-    for(uint32_t i = 0; i < size - 1; i++)
-        send_character(str[i]);
-
-    /*
-    gpio_put(RS_PIN, true);
-
-    sleep_ms(500);
-
-    gpio_put(D0, false);
-    gpio_put(D1, false);
-    gpio_put(D2, false);
-    gpio_put(D3, true);
-    gpio_put(D4, false);
-    gpio_put(D5, false);
-    gpio_put(D6, true);
-    gpio_put(D7, false);
-
-    sleep_ms(500);
-
-    gpio_put(EN_PIN, false);
-    gpio_put(RS_PIN, true);
-    */
-
+    send_string(str);
 
     while(true)
     {
-        // Do nothing
     }
 
     return 0;

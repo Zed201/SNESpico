@@ -14,7 +14,8 @@ add_executable(SNESpico
 )
 
 # adicionar as libs de features específicas
-target_link_libraries(SNESpico pico_stdlib hardware_pwm hardware_adc)
+target_link_libraries(SNESpico pico_stdlib 
+hardware_pwm hardware_adc pico_multicore pico_sync)
 
 pico_enable_stdio_usb(SNESpico 1)
 pico_enable_stdio_uart(SNESpico 0)

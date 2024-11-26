@@ -12,7 +12,7 @@ Equipe:
 
 ### Setup
 #### Dependências
-Basicamente tem que ter o cmake, git, python3, build-essential(ou build-devel no aur), gcc-arm-none-eabi, libnewlib-arm-none-eabi e libstdc++-arm-none-eabi-newlib
+É necessário ter o cmake, git, python3, build-essential(ou build-devel no aur), gcc-arm-none-eabi, libnewlib-arm-none-eabi e libstdc++-arm-none-eabi-newlib
 ```
 sudo apt install cmake git python3 build-essential gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
 ```
@@ -21,8 +21,13 @@ sudo apt install cmake git python3 build-essential gcc-arm-none-eabi libnewlib-a
 sudo pacman -Sy cmake git python3 base-devel arm-none-eabi-newlib arm-none-eabi-gcc
 ```
 
+### Clone
+```
+git clone --recurse-submodules https://github.com/Zed201/SNESpico.git
+```
+
 #### Comandos de build
-Depois de clonar tudo do github, com submodule recursive, coloca no terminal `. setup.sh` para ele executar a importação de algumas coisas e dar build no projeto, o arquivo `*.elf` ele é para ser testado com debugger e o `*.uf2` é para ser instalado no Rasberry Pi Pico
+Depois de clonar, coloque no terminal `. setup.sh` para ele executar a importação de algumas coisas e dar build no projeto, o arquivo `*.elf` é para ser testado com debugger e o `*.uf2` é para ser instalado no Rasberry Pi Pico
 
 ### Extras
 - Uso do serial: Para poder usar o serial como um console no computador é necessário instalar o programa puTTY para que ele possa simular o terminal para o raspberry pi pico. O programa deve seguir as seguintes configurações

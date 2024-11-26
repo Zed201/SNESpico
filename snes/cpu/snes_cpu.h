@@ -3,7 +3,7 @@
 #include <bus.h>
 #include <stdint.h>
 
-enum AddressingMode { // TODO: Trocar para todos os modos de enderaçamento
+enum class AddressingMode { // TODO: Trocar para todos os modos de enderaçamento
     Immediate, // tem 3 tipos de imediate(memory flag, index flag e 8 bit)
 
     Relative,
@@ -51,7 +51,7 @@ private:
     // Registers
     uint8_t DBR; // DataBank, holds the default bank for memory transfers
     uint8_t PBR; // ProgramBank, hold the bank address of al instruction fetches
-    uint16_t DR;
+    uint16_t DP; // Direct Page, it is the base for direct page addressing
     uint16_t PC, SP; // Holds memory address of the current CPU Instruction
     uint16_t X, Y; // Index registers 
 
@@ -94,6 +94,7 @@ private:
 
     void I_ADC();
 
+    void I_AND();
     void AND_DPIIX();
     void AND_SR();
     void AND_DP();

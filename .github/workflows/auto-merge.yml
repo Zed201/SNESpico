@@ -1,21 +1,22 @@
-name: Auto Merge to Main
+name: Auto Merge and Update Branches
 
 on:
   schedule:
     - cron: '0 0 * * *'  # Executa todos os dias à meia noite
   push:
     branches:
-      - dev-branch-1
-      - dev-branch-2  # As branches de desenvolvimento que você deseja mesclar.
+      - devG
+      - devM
+      - devJ
 
 env:
   USER_NAME: 'GitHub Actions'
   USER_EMAIL: 'github-actions@github.com'
   MAIN_BRANCH: 'main'
-  DEV_BRANCHES: 'dev-branch-1 dev-branch-2'  # Lista de branches separadas por espaço
+  DEV_BRANCHES: 'devG devM devJ'  # Lista de branches separadas por espaço
 
 jobs:
-  merge:
+  merge_and_update:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,19 +29,29 @@ jobs:
           user-name: ${{ env.USER_NAME }}
           user-email: ${{ env.USER_EMAIL }}
 
-      - name: Merge changes from development branches
+      - name: Merge changes from development branches into main and update them
         run: |
           git fetch origin
           git checkout ${{ env.MAIN_BRANCH }}
           git pull origin ${{ env.MAIN_BRANCH }}
+
           for branch in ${{ env.DEV_BRANCHES }}; do
-            echo "Checking branch $branch..."
+            echo "Processing branch $branch..."
+
+            # Merge changes from the development branch into main
             git log --oneline origin/${{ env.MAIN_BRANCH }}..origin/$branch --pretty=oneline > changes.txt || true
             if [ -s changes.txt ]; then
-              echo "Changes detected in $branch, proceeding with merge."
+              echo "Merging $branch into ${{ env.MAIN_BRANCH }}..."
               git merge origin/$branch
               git push origin ${{ env.MAIN_BRANCH }}
             else
-              echo "No changes in $branch, skipping merge."
+              echo "No changes in $branch to merge into ${{ env.MAIN_BRANCH }}."
             fi
+
+            # Update the development branch with changes from main
+            echo "Updating $branch with changes from ${{ env.MAIN_BRANCH }}..."
+            git checkout $branch
+            git pull origin $branch
+            git merge ${{ env.MAIN_BRANCH }}
+            git push origin $branch
           done

@@ -33,7 +33,8 @@ void SNES_CPU::AND_I(){
 }
 
 // TODO 
-void SNES_CPU::AND_A(){
+void SNES_CPU::AND_A()
+{
     uint16_t address = m_Bus->ReadWord(PC);
     PC += 2;
     uint8_t value = m_Bus->ReadByte(address);

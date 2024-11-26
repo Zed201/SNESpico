@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# lembar de colocar o "git submodule update --recursive"
 BASE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PICO_SDK="$BASE_DIR/vendor/pico-sdk"
 

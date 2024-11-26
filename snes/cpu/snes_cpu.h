@@ -3,40 +3,78 @@
 #include <bus.h>
 #include <stdint.h>
 
+enum AddressingMode { // TODO: Trocar para todos os modos de enderaçamento
+    Immediate, // tem 3 tipos de imediate(memory flag, index flag e 8 bit)
+
+    Relative,
+    Relative_Long,
+
+    Direct,
+    Direct_IndexX,
+    Direct_IndexY,
+    Direct_Indirect,
+    Direct_Indexed_Indirect,
+    Direct_Indirect_Indexed,
+    Direct_Indirect_Long,
+    Direct_Indirect_Indexed_Long,
+
+    Absolute,
+    Absolute_Indirect,
+    Absolute_Indexed_X,
+    Absolute_Indexed_Y,
+    Absolute_Indexed_Indirect,
+
+    Absolute_Long,
+    Absolute_Indexed_Long,
+    Absolute_Indirect_Long,
+
+    Stack_Relative,
+    Stack_Relative_Indirect_Indexed,
+
+    Implied_Accumulator,
+    Block_move
+};
+
 class SNES_CPU
 {
 private:
     union
     {
         uint16_t C;
-        struct
+        struct // just in emulation mode
         {
-            uint8_t A;
-            uint8_t B;
+            uint8_t A; // Most significative
+            uint8_t B; // less signitifcative
         };
     } Accumulator;
 
-    uint8_t DBR;
-    uint8_t PBR;
+    // Registers
+    uint8_t DBR; // DataBank, holds the default bank for memory transfers
+    uint8_t PBR; // ProgramBank, hold the bank address of al instruction fetches
     uint16_t DR;
-    uint16_t PC, SP;
-    uint16_t X, Y;
+    uint16_t PC, SP; // Holds memory address of the current CPU Instruction
+    uint16_t X, Y; // Index registers 
 
     struct 
     {
-        uint8_t N : 1;
-        uint8_t V : 1;
-        uint8_t M : 1;
-        uint8_t X : 1;
-        uint8_t D : 1;
-        uint8_t I : 1;
-        uint8_t Z : 1;
-        uint8_t C : 1;
-        uint8_t E : 1;
-        uint8_t B : 1;
+        uint8_t N : 1; // Negative
+        uint8_t V : 1; // Overflow
+        uint8_t M : 1; // Accumulator Register size(Native mode only, 0 = 16, 1 = 8)
+        uint8_t X : 1; // Index Register(Native mode only, 0 = 16, 1 = 8)
+        uint8_t D : 1; // Decimal
+        uint8_t I : 1; // IRQ disable
+        uint8_t Z : 1; // Zero
+        uint8_t C : 1; // Carry
+        uint8_t E : 1; // Emulation Mode
+        uint8_t B : 1; // Break(Emu)
     } Status;
 
     Bus *m_Bus;
+
+    uint8_t m_CurrentValue;
+    uint16_t m_CurrentAddress;
+    uint8_t m_Cycles; // Cycles to "wait"
+    AddressingMode m_AddressingMode;
 
     void ADC_DPIIX();
     void ADC_SR();
@@ -53,6 +91,8 @@ private:
     void ADC_AIY();
     void ADC_AIX();
     void ADC_ALIX();
+
+    void I_ADC();
 
     void AND_DPIIX();
     void AND_SR();

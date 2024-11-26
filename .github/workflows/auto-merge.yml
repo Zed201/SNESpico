@@ -24,11 +24,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Git
-      - uses: actions/checkout@v3
-      - run: git config --global user.email ${{ env.USER_NAME }}
-      - run: git config --global user.name ${{ env.USER_EMAIL }}
-      - run: git commit --message 'Something cool'
-      - run: git push
+      - run: | 
+         git config --global user.email ${{ env.USER_NAME }}
+         git config --global user.name ${{ env.USER_EMAIL }}
 
       - name: Merge changes from development branches into main and update them
         run: |

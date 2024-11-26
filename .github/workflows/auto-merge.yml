@@ -27,6 +27,7 @@ jobs:
       - run: | 
          git config --global user.email ${{ env.USER_NAME }}
          git config --global user.name ${{ env.USER_EMAIL }}
+         done
 
       - name: Merge changes from development branches into main and update them
         run: |

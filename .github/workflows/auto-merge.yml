@@ -2,7 +2,7 @@ name: Auto Merge and Update Branches
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Executa todos os dias à meia noite
+    - cron: '0 0 * * 1'  # Executa todos os dias à meia noite
   push:
     branches:
       - devG

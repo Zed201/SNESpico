@@ -6,23 +6,6 @@ SNES_CPU::SNES_CPU(Bus *bus)
 
 void SNES_CPU::Impl_ADC(){}
 
-void SNES_CPU::ADC_DPIIX(){}
-void SNES_CPU::ADC_SR(){}
-void SNES_CPU::ADC_DP(){}
-void SNES_CPU::ADC_DPIL(){}
-void SNES_CPU::ADC_I(){}
-void SNES_CPU::ADC_A(){}
-void SNES_CPU::ADC_AL(){}
-void SNES_CPU::ADC_DPIIY(){}
-void SNES_CPU::ADC_DPI(){}
-void SNES_CPU::ADC_SRIIY(){}
-void SNES_CPU::ADC_DPIX(){}
-void SNES_CPU::ADC_DPILIY(){}
-void SNES_CPU::ADC_AIY(){}
-void SNES_CPU::ADC_AIX(){}
-void SNES_CPU::ADC_ALIX(){}
-
-
 void SNES_CPU::Impl_AND()
 {
     // Performing the AND operation
@@ -35,7 +18,57 @@ void SNES_CPU::Impl_AND()
     Status.N = (Accumulator.A & 0x80) ? 1 : 0;
 }
 
-void SNES_CPU::AD_I()
+void SNES_CPU::Impl_TRB(){}
+
+void SNES_CPU::Impl_TSB(){}
+
+void SNES_CPU::Impl_ORA(){}
+
+void SNES_CPU::Impl_ROL(){}
+
+void SNES_CPU::Impl_ROR(){}
+
+void SNES_CPU::Impl_EOR(){}
+
+void SNES_CPU::Impl_JMP(){}
+
+void SNES_CPU::Impl_JSR(){}
+
+void SNES_CPU::Impl_LDA(){}
+
+void SNES_CPU::Impl_LDX(){}
+
+void SNES_CPU::Impl_LDY(){}
+
+void SNES_CPU::Impl_LSR(){}
+
+void SNES_CPU::Impl_INC(){}
+
+void SNES_CPU::Impl_CPX(){}
+
+void SNES_CPU::Impl_CPY(){}
+
+void SNES_CPU::Impl_DEC(){}
+
+void SNES_CPU::Impl_CMP(){}
+
+void SNES_CPU::Impl_BIT(){}
+
+void SNES_CPU::Impl_ASL(){}
+
+void SNES_CPU::Impl_STA(){}
+
+void SNES_CPU::Impl_STX(){}
+
+void SNES_CPU::Impl_STY(){}
+
+void SNES_CPU::Impl_STZ(){}
+
+void SNES_CPU::Impl_SBC(){}
+
+void SNES_CPU::Impl_ADC(){}
+
+void SNES_CPU::AD_Imm_Mem()
 {
     if (!Status.M || !Status.X) // 16 bits
     {
@@ -47,7 +80,7 @@ void SNES_CPU::AD_I()
         m_CurrentValue = m_Bus->ReadByte(PC++);
     }
 }
-void SNES_CPU::AD_A()
+void SNES_CPU::AD_Abs()
 {
     // Calculate the absolute address with the bank defined by DBR 
     uint32_t address = DBR;
@@ -58,7 +91,7 @@ void SNES_CPU::AD_A()
     m_CurrentValue = m_Bus->ReadByte(address);
     m_AddressingMode = AddressingMode::Absolute;
 }
-void SNES_CPU::AD_AL()
+void SNES_CPU::AD_Abs_Long()
 {
     // Read the first 2 bytes of the address (low and high)
     uint32_t address = m_Bus->ReadWord(PC);
@@ -72,7 +105,7 @@ void SNES_CPU::AD_AL()
     m_CurrentValue = m_Bus->ReadWord(address);
     m_AddressingMode = AddressingMode::Absolute_Long;
 }
-void SNES_CPU::AD_DP()
+void SNES_CPU::AD_Dir_Pg()
 {
     // Read the offset
     uint32_t offset = m_Bus->ReadByte(PC);
@@ -86,37 +119,33 @@ void SNES_CPU::AD_DP()
     m_CurrentAddress = address;
     m_AddressingMode = AddressingMode::Direct;
 }
-void SNES_CPU::AD_DPIIX(){
-    
-}
-void SNES_CPU::AD_SR(){}
 
-void SNES_CPU::AD_DPIL(){}
-void SNES_CPU::AD_DPIIY(){}
-void SNES_CPU::AD_DPI(){}
-void SNES_CPU::AD_SRIIY(){}
-void SNES_CPU::AD_DPIX(){}
-void SNES_CPU::AD_DPILIY(){}
-void SNES_CPU::AD_AIY(){}
-void SNES_CPU::AD_AIX(){}
-void SNES_CPU::AD_ALIX(){}
-
-//////////////////////////////
-void SNES_CPU::ASL_DP(){}
-void SNES_CPU::ASL_ACC(){}
-void SNES_CPU::ASL_A(){}
-void SNES_CPU::ASL_DPIX(){}
-void SNES_CPU::ASL_AIX(){}
+void SNES_CPU::AD_Imm_Indx(){}
+void SNES_CPU::AD_Imm_8bit(){}
+void SNES_CPU::AD_Rel(){}
+void SNES_CPU::AD_Rel_Long(){}
+void SNES_CPU::AD_Dir(){}
+void SNES_CPU::AD_Dir_Indx_X(){}
+void SNES_CPU::AD_Dir_Indx_Y(){}
+void SNES_CPU::AD_Dir_Indx(){}
+void SNES_CPU::AD_Dir_Indx_Ind(){}
+void SNES_CPU::AD_Dir_Ind_Indx(){}
+void SNES_CPU::AD_Dir_Ind_Long(){}
+void SNES_CPU::AD_Dir_Ind_Indx_Long(){}
+void SNES_CPU::AD_Abs_Indx_X(){}
+void SNES_CPU::AD_Abs_Indx_Y(){}
+void SNES_CPU::AD_Abs_Indx_Long(){}
+void SNES_CPU::AD_Stack_Rel(){}
+void SNES_CPU::AD_Stack_Rel_Ind_Indx(){}
+void SNES_CPU::AD_Abs_Ind(){}
+void SNES_CPU::AD_Abs_Ind_Long(){}
+void SNES_CPU::AD_Abs_Indx_Ind(){}
+void SNES_CPU::AD_Imp_Acc(){}
+void SNES_CPU::AD_Block_Mv(){}
 
 void SNES_CPU::BLT(){}
 void SNES_CPU::BGE(){}
 void SNES_CPU::BEQ(){}
-
-void SNES_CPU::BIT_DP(){}
-void SNES_CPU::BIT_A(){}
-void SNES_CPU::BIT_DPIX(){}
-void SNES_CPU::BIT_AIX(){}
-void SNES_CPU::BIT_I(){}
 
 void SNES_CPU::BMI(){}
 void SNES_CPU::BNE(){}
@@ -124,6 +153,7 @@ void SNES_CPU::BPL(){}
 void SNES_CPU::BRA(){}
 
 void SNES_CPU::BRK_SI(){}
+
 void SNES_CPU::BRK_PCRL(){}
 
 void SNES_CPU::BVC(){}
@@ -134,129 +164,17 @@ void SNES_CPU::CLD(){}
 void SNES_CPU::CLI(){}
 void SNES_CPU::CLV(){}
 
-void SNES_CPU::CMP_DPIIX(){}
-void SNES_CPU::CMP_SR(){}
-void SNES_CPU::CMP_DP(){}
-void SNES_CPU::CMP_DPIL(){}
-void SNES_CPU::CMP_I(){}
-void SNES_CPU::CMP_A(){}
-void SNES_CPU::CMP_AL(){}
-void SNES_CPU::CMP_DPIIY(){}
-void SNES_CPU::CMP_DPI(){}
-void SNES_CPU::CMP_SRIIY(){}
-void SNES_CPU::CMP_DPIX(){}
-void SNES_CPU::CMP_DPILIY(){}
-void SNES_CPU::CMP_AIY(){}
-void SNES_CPU::CMP_AIX(){}
-void SNES_CPU::CMP_ALIX(){}
-
 void SNES_CPU::COP(){}
-
-void SNES_CPU::CPX_I(){}
-void SNES_CPU::CPX_DP(){}
-void SNES_CPU::CPX_A(){}
-
-void SNES_CPU::CPY_I(){}
-void SNES_CPU::CPY_DP(){}
-void SNES_CPU::CPY_A(){}
-
-void SNES_CPU::DEC_ACC(){}
-void SNES_CPU::DEC_DP(){}
-void SNES_CPU::DEC_A(){}
-void SNES_CPU::DEC_DPIX(){}
-void SNES_CPU::DEC_AIX(){}
 
 void SNES_CPU::DEX(){}
 void SNES_CPU::DEY(){}
 
-void SNES_CPU::EOR_DPIIX(){}
-void SNES_CPU::EOR_SR(){}
-void SNES_CPU::EOR_DP(){}
-void SNES_CPU::EOR_DPIL(){}
-void SNES_CPU::EOR_I(){}
-void SNES_CPU::EOR_A(){}
-void SNES_CPU::EOR_AL(){}
-void SNES_CPU::EOR_DPIIY(){}
-void SNES_CPU::EOR_DPI(){}
-void SNES_CPU::EOR_SRIIY(){}
-void SNES_CPU::EOR_DPIX(){}
-void SNES_CPU::EOR_DPILIY(){}
-void SNES_CPU::EOR_AIY(){}
-void SNES_CPU::EOR_AIX(){}
-void SNES_CPU::EOR_ALIX(){}
-
-void SNES_CPU::INC_ACC(){}
-void SNES_CPU::INC_DP(){}
-void SNES_CPU::INC_A(){}
-void SNES_CPU::INC_DPIX(){}
-void SNES_CPU::INC_AIX(){}
-
 void SNES_CPU::INX(){}
 void SNES_CPU::INY(){}
-
-void SNES_CPU::JMP_A(){}
-void SNES_CPU::JMP_AL(){}
-void SNES_CPU::JMP_AI(){}
-void SNES_CPU::JMP_AII(){}
-void SNES_CPU::JMP_AIL(){}
-
-void SNES_CPU::JSR_A(){}
-void SNES_CPU::JSR_AL(){}
-void SNES_CPU::JSR_AII(){}
-
-void SNES_CPU::LDA_DPIIX(){}
-void SNES_CPU::LDA_SR(){}
-void SNES_CPU::LDA_DP(){}
-void SNES_CPU::LDA_DPIL(){}
-void SNES_CPU::LDA_I(){}
-void SNES_CPU::LDA_A(){}
-void SNES_CPU::LDA_AL(){}
-void SNES_CPU::LDA_DPIIY(){}
-void SNES_CPU::LDA_DPI(){}
-void SNES_CPU::LDA_SRIIY(){}
-void SNES_CPU::LDA_DPIX(){}
-void SNES_CPU::LDA_DPILIY(){}
-void SNES_CPU::LDA_AIY(){}
-void SNES_CPU::LDA_AIX(){}
-void SNES_CPU::LDA_ALIX(){}
-
-void SNES_CPU::LDX_I(){}
-void SNES_CPU::LDX_DP(){}
-void SNES_CPU::LDX_A(){}
-void SNES_CPU::LDX_DPIY(){}
-void SNES_CPU::LDX_AIY(){}
-
-void SNES_CPU::LDY_I(){}
-void SNES_CPU::LDY_DP(){}
-void SNES_CPU::LDY_A(){}
-void SNES_CPU::LDY_DPIX(){}
-void SNES_CPU::LDY_AIX(){}
-
-void SNES_CPU::LSR_DP(){}
-void SNES_CPU::LSR_ACC(){}
-void SNES_CPU::LSR_A(){}
-void SNES_CPU::LSR_DPIX(){}
-void SNES_CPU::LSR_AIX(){}
 
 void SNES_CPU::MVN(){}
 void SNES_CPU::MVP(){}
 void SNES_CPU::NOP(){}
-
-void SNES_CPU::ORA_DPIIX(){}
-void SNES_CPU::ORA_SR(){}
-void SNES_CPU::ORA_DP(){}
-void SNES_CPU::ORA_DPIL(){}
-void SNES_CPU::ORA_I(){}
-void SNES_CPU::ORA_A(){}
-void SNES_CPU::ORA_AL(){}
-void SNES_CPU::ORA_DPIIY(){}
-void SNES_CPU::ORA_DPI(){}
-void SNES_CPU::ORA_SRIIY(){}
-void SNES_CPU::ORA_DPIX(){}
-void SNES_CPU::ORA_DPILIY(){}
-void SNES_CPU::ORA_AIY(){}
-void SNES_CPU::ORA_AIX(){}
-void SNES_CPU::ORA_ALIX(){}
 
 void SNES_CPU::PEA(){}
 void SNES_CPU::PEI(){}
@@ -276,84 +194,21 @@ void SNES_CPU::PLX(){}
 void SNES_CPU::PLY(){}
 void SNES_CPU::REP(){}
 
-void SNES_CPU::ROL_DP(){}
-void SNES_CPU::ROL_ACC(){}
-void SNES_CPU::ROL_A(){}
-void SNES_CPU::ROL_DPIX(){}
-void SNES_CPU::ROL_AIX(){}
-
-void SNES_CPU::ROR_DP(){}
-void SNES_CPU::ROR_ACC(){}
-void SNES_CPU::ROR_A(){}
-void SNES_CPU::ROR_DPIX(){}
-void SNES_CPU::ROR_AIX(){}
-
 void SNES_CPU::RTI(){}
 void SNES_CPU::RTL(){}
 void SNES_CPU::RTS(){}
-
-void SNES_CPU::SBC_DPIIX(){}
-void SNES_CPU::SBC_SR(){}
-void SNES_CPU::SBC_DP(){}
-void SNES_CPU::SBC_DPIL(){}
-void SNES_CPU::SBC_I(){}
-void SNES_CPU::SBC_A(){}
-void SNES_CPU::SBC_AL(){}
-void SNES_CPU::SBC_DPIIY(){}
-void SNES_CPU::SBC_DPI(){}
-void SNES_CPU::SBC_SRIIY(){}
-void SNES_CPU::SBC_DPIX(){}
-void SNES_CPU::SBC_DPIILY(){}
-void SNES_CPU::SBC_AIY(){}
-void SNES_CPU::SBC_AIX(){}
-void SNES_CPU::SBC_ALIX(){}
 
 void SNES_CPU::SEC(){}
 void SNES_CPU::SED(){}
 void SNES_CPU::SEI(){}
 void SNES_CPU::SEP(){}
-
-void SNES_CPU::STA_DPIIX(){}
-void SNES_CPU::STA_SR(){}
-void SNES_CPU::STA_DP(){}
-void SNES_CPU::STA_DPIL(){}
-void SNES_CPU::STA_A(){}
-void SNES_CPU::STA_AL(){}
-void SNES_CPU::STA_DPIIY(){}
-void SNES_CPU::STA_DPI(){}
-void SNES_CPU::STA_SRIIY(){}
-void SNES_CPU::STA_DPIX(){}
-void SNES_CPU::STA_DPILIY(){}
-void SNES_CPU::STA_AIY(){}
-void SNES_CPU::STA_AIX(){}
-void SNES_CPU::STA_ALIX(){}
-
 void SNES_CPU::STP(){}
-
-void SNES_CPU::STX_DP(){}
-void SNES_CPU::STX_A(){}
-void SNES_CPU::STX_DPIY(){}
-
-void SNES_CPU::STY_DP(){}
-void SNES_CPU::STY_A(){}
-void SNES_CPU::STY_DPIX(){}
-
-void SNES_CPU::STZ_DP(){}
-void SNES_CPU::STZ_DPIX(){}
-void SNES_CPU::STZ_A(){}
-void SNES_CPU::STZ_AIX(){}
 
 void SNES_CPU::TAX(){}
 void SNES_CPU::TAY(){}
 void SNES_CPU::TCD(){}
 void SNES_CPU::TCS(){}
 void SNES_CPU::TDC(){}
-
-void SNES_CPU::TRB_DP(){}
-void SNES_CPU::TRB_A(){}
-
-void SNES_CPU::TSB_DP(){}
-void SNES_CPU::TSB_A(){}
 
 void SNES_CPU::TSC(){}
 void SNES_CPU::TSX(){}
@@ -367,4 +222,3 @@ void SNES_CPU::WAI(){}
 void SNES_CPU::WDM(){}
 void SNES_CPU::XBA(){}
 void SNES_CPU::XCE(){}
-

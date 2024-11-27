@@ -22,25 +22,72 @@ void SNES_CPU::ADC_ALIX(){}
 
 void SNES_CPU::I_ADC(){}
 
+void SNES_CPU::I_AND()
+{
+    // Performing the AND operation
+    Accumulator.C = Accumulator.C & m_CurrentValue;
+
+    // Set the Zero flag if the result is 0
+    Status.Z = (Accumulator.C == 0) ? 1 : 0;
+
+    // Set the Negative flag based on the MSB of the result
+    Status.N = (Accumulator.A & 0x80) ? 1 : 0;
+}
 void SNES_CPU::AND_DPIIX(){
     
 }
 void SNES_CPU::AND_SR(){}
-void SNES_CPU::AND_DP(){}
+void SNES_CPU::AND_DP()
+{
+    // Read the offset
+    uint32_t offset = m_Bus->ReadByte(PC);
+    PC++;
+
+    // alculate the full address
+    uint32_t address = (DP & 0xFF00) | offset;
+
+    // Read the value in the memory and set the addressing mode
+    m_CurrentValue = m_Bus->ReadByte(address);
+    m_AddressingMode = AddressingMode::Direct;
+
+    // Perform the AND operation
+    I_AND();
+}
 void SNES_CPU::AND_DPIL(){}
 void SNES_CPU::AND_I(){
 
 }
-
-// TODO 
 void SNES_CPU::AND_A()
 {
-    uint16_t address = m_Bus->ReadWord(PC);
+    // Calculate the absolute address with the bank defined by DBR 
+    uint32_t address = DBR;
+    address = (address << 16) | m_Bus->ReadWord(PC);
     PC += 2;
-    uint8_t value = m_Bus->ReadByte(address);
-    Accumulator.C = 
+
+    // Read the value in the memory and set the addressing mode
+    m_CurrentValue = m_Bus->ReadByte(address);
+    m_AddressingMode = AddressingMode::Absolute;
+
+    // Perform the AND operation
+    I_AND();
 }
-void SNES_CPU::AND_AL(){}
+void SNES_CPU::AND_AL()
+{
+    // Read the first 2 bytes of the address (low and high)
+    uint32_t address = m_Bus->ReadWord(PC);
+    PC += 2;
+
+    // Read the third byte (bank)
+    address |= static_cast<uint32_t>(m_Bus->ReadByte(PC)) << 16;
+    PC++;
+
+    // Read the value in the memory and set the addressing mode
+    m_CurrentValue = m_Bus->ReadWord(address);
+    m_AddressingMode = AddressingMode::Absolute_Long;
+
+    // Perform the AND operation
+    I_AND();
+}
 void SNES_CPU::AND_DPIIY(){}
 void SNES_CPU::AND_DPI(){}
 void SNES_CPU::AND_SRIIY(){}

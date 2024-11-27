@@ -12,6 +12,7 @@ git checkout $main_branch
 # Atualize a branch principal com o remoto
 git pull origin $main_branch
 
+
 # Liste todas as branches locais (exceto a branch principal)
 for branch in $(git branch --format='%(refname:short)' | grep -v "$main_branch"); do
   echo "Fazendo merge da branch $branch na $main_branch..."
@@ -27,3 +28,4 @@ for branch in $(git branch --format='%(refname:short)' | grep -v "$main_branch")
   git merge $main_branch
 done
 #   git push origin "$branch"
+

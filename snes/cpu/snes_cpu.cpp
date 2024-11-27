@@ -4,6 +4,8 @@ SNES_CPU::SNES_CPU(Bus *bus)
 {
 }
 
+void SNES_CPU::Impl_ADC(){}
+
 void SNES_CPU::ADC_DPIIX(){}
 void SNES_CPU::ADC_SR(){}
 void SNES_CPU::ADC_DP(){}
@@ -20,9 +22,8 @@ void SNES_CPU::ADC_AIY(){}
 void SNES_CPU::ADC_AIX(){}
 void SNES_CPU::ADC_ALIX(){}
 
-void SNES_CPU::I_ADC(){}
 
-void SNES_CPU::I_AND()
+void SNES_CPU::Impl_AND()
 {
     // Performing the AND operation
     Accumulator.C = Accumulator.C & m_CurrentValue;
@@ -33,31 +34,20 @@ void SNES_CPU::I_AND()
     // Set the Negative flag based on the MSB of the result
     Status.N = (Accumulator.A & 0x80) ? 1 : 0;
 }
-void SNES_CPU::AND_DPIIX(){
-    
-}
-void SNES_CPU::AND_SR(){}
-void SNES_CPU::AND_DP()
+
+void SNES_CPU::AD_I()
 {
-    // Read the offset
-    uint32_t offset = m_Bus->ReadByte(PC);
-    PC++;
-
-    // alculate the full address
-    uint32_t address = (DP & 0xFF00) | offset;
-
-    // Read the value in the memory and set the addressing mode
-    m_CurrentValue = m_Bus->ReadByte(address);
-    m_AddressingMode = AddressingMode::Direct;
-
-    // Perform the AND operation
-    I_AND();
+    if (!Status.M || !Status.X) // 16 bits
+    {
+        m_CurrentValue = m_Bus->ReadWord(PC);
+        PC += 2;
+    } 
+    else // 8 bits
+    {
+        m_CurrentValue = m_Bus->ReadByte(PC++);
+    }
 }
-void SNES_CPU::AND_DPIL(){}
-void SNES_CPU::AND_I(){
-
-}
-void SNES_CPU::AND_A()
+void SNES_CPU::AD_A()
 {
     // Calculate the absolute address with the bank defined by DBR 
     uint32_t address = DBR;
@@ -67,11 +57,8 @@ void SNES_CPU::AND_A()
     // Read the value in the memory and set the addressing mode
     m_CurrentValue = m_Bus->ReadByte(address);
     m_AddressingMode = AddressingMode::Absolute;
-
-    // Perform the AND operation
-    I_AND();
 }
-void SNES_CPU::AND_AL()
+void SNES_CPU::AD_AL()
 {
     // Read the first 2 bytes of the address (low and high)
     uint32_t address = m_Bus->ReadWord(PC);
@@ -84,19 +71,37 @@ void SNES_CPU::AND_AL()
     // Read the value in the memory and set the addressing mode
     m_CurrentValue = m_Bus->ReadWord(address);
     m_AddressingMode = AddressingMode::Absolute_Long;
-
-    // Perform the AND operation
-    I_AND();
 }
-void SNES_CPU::AND_DPIIY(){}
-void SNES_CPU::AND_DPI(){}
-void SNES_CPU::AND_SRIIY(){}
-void SNES_CPU::AND_DPIX(){}
-void SNES_CPU::AND_DPILIY(){}
-void SNES_CPU::AND_AIY(){}
-void SNES_CPU::AND_AIX(){}
-void SNES_CPU::AND_ALIX(){}
+void SNES_CPU::AD_DP()
+{
+    // Read the offset
+    uint32_t offset = m_Bus->ReadByte(PC);
+    PC++;
 
+    // alculate the full address
+    uint32_t address = DP + offset;
+
+    // Read the value in the memory and set the addressing mode
+    m_CurrentValue = m_Bus->ReadByte(address);
+    m_CurrentAddress = address;
+    m_AddressingMode = AddressingMode::Direct;
+}
+void SNES_CPU::AD_DPIIX(){
+    
+}
+void SNES_CPU::AD_SR(){}
+
+void SNES_CPU::AD_DPIL(){}
+void SNES_CPU::AD_DPIIY(){}
+void SNES_CPU::AD_DPI(){}
+void SNES_CPU::AD_SRIIY(){}
+void SNES_CPU::AD_DPIX(){}
+void SNES_CPU::AD_DPILIY(){}
+void SNES_CPU::AD_AIY(){}
+void SNES_CPU::AD_AIX(){}
+void SNES_CPU::AD_ALIX(){}
+
+//////////////////////////////
 void SNES_CPU::ASL_DP(){}
 void SNES_CPU::ASL_ACC(){}
 void SNES_CPU::ASL_A(){}

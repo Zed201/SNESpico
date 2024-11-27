@@ -76,6 +76,8 @@ private:
     uint8_t m_Cycles; // Cycles to "wait"
     AddressingMode m_AddressingMode;
 
+    void Impl_ADC();
+
     void ADC_DPIIX();
     void ADC_SR();
     void ADC_DP();
@@ -92,24 +94,22 @@ private:
     void ADC_AIX();
     void ADC_ALIX();
 
-    void I_ADC();
-
-    void I_AND();
-    void AND_DPIIX();
-    void AND_SR();
-    void AND_DP();
-    void AND_DPIL();
-    void AND_I();
-    void AND_A();
-    void AND_AL();
-    void AND_DPIIY();
-    void AND_DPI();
-    void AND_SRIIY();
-    void AND_DPIX();
-    void AND_DPILIY();
-    void AND_AIY();
-    void AND_AIX();
-    void AND_ALIX();
+    void Impl_AND();
+    void AD_DPIIX();
+    void AD_SR();
+    void AD_DP();
+    void AD_DPIL();
+    void AD_I();
+    void AD_A();
+    void AD_AL();
+    void AD_DPIIY();
+    void AD_DPI();
+    void AD_SRIIY();
+    void AD_DPIX();
+    void AD_DPILIY();
+    void AD_AIY();
+    void AD_AIX();
+    void AD_ALIX();
 
     void ASL_DP();
     void ASL_ACC();

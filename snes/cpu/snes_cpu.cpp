@@ -13,7 +13,6 @@ void SNES_CPU::Impl_ADC()
     Set_NZ_Flags(res);
     Regs.C = res > 0xFF;
     Accumulator.C = res;
-
 }
 
 void SNES_CPU::Set_NZ_Flags(uint8_t v)
@@ -65,9 +64,20 @@ void SNES_CPU::Impl_DEC(){}
 
 void SNES_CPU::Impl_CMP(){}
 
-void SNES_CPU::Impl_BIT(){}
+void SNES_CPU::Impl_BIT()
+{
+    Regs.N = m_CurrentAddress & 0x80u;
+    Regs.V = m_CurrentAddress & 0x40u;
+    Regs.Z = !(m_CurrentAddress & Accumulator.C);
+}
 
-void SNES_CPU::Impl_ASL(){}
+void SNES_CPU::Impl_ASL()
+{
+    m_CurrentValue = m_CurrentValue << 1;
+    m_Bus->SetWord(m_CurrentAddress, m_CurrentValue);
+    Set_NZ_Flags(m_CurrentValue);
+    Regs.C = m_CurrentAddress & 0x80u;
+}
 
 void SNES_CPU::Impl_STA(){}
 

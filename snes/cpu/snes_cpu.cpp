@@ -1,10 +1,26 @@
 #include "snes_cpu.h"
+#include "utils.h"
 
 SNES_CPU::SNES_CPU(Bus *bus)
 {
 }
 
-void SNES_CPU::Impl_ADC(){}
+void SNES_CPU::Impl_ADC()
+{
+    uint32_t res = Accumulator.C + m_CurrentValue + Regs.C;
+
+    Regs.V = (~(Accumulator.C ^ m_CurrentValue) & (Accumulator.C ^ res)) & 0x80u;
+    Set_NZ_Flags(res);
+    Regs.C = res > 0xFF;
+    Accumulator.C = res;
+
+}
+
+void SNES_CPU::Set_NZ_Flags(uint8_t v)
+{
+    Regs.N = v & 0x80u;
+    Regs.Z = !v;
+}
 
 void SNES_CPU::Impl_AND()
 {
@@ -12,10 +28,7 @@ void SNES_CPU::Impl_AND()
     Accumulator.C = Accumulator.C & m_CurrentValue;
 
     // Set the Zero flag if the result is 0
-    Status.Z = (Accumulator.C == 0) ? 1 : 0;
-
-    // Set the Negative flag based on the MSB of the result
-    Status.N = (Accumulator.A & 0x80) ? 1 : 0;
+   Set_NZ_Flags(Accumulator.C);
 }
 
 void SNES_CPU::Impl_TRB(){}
@@ -70,7 +83,7 @@ void SNES_CPU::Impl_ADC(){}
 
 void SNES_CPU::AD_Imm_Mem()
 {
-    if (!Status.M || !Status.X) // 16 bits
+    if (!Regs.M || !Regs.X) // 16 bits
     {
         m_CurrentValue = m_Bus->ReadWord(PC);
         PC += 2;

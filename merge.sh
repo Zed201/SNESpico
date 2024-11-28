@@ -2,6 +2,7 @@
 # ele da merge das branchs de dev na main, se tiver algum confliyo ele aparece para resolver no terminal
 # para ter isso funcionando precisa configurar o editor com "git config --global core.editor 'vim'"
 # depois de dar merge em todas as branchs na main ele da merge na "direação inversa", atualizando as outras branchs com a main
+# se for usar ssh, lembrar de colocar o ssh-agent para ele não fica pedindo direto a chave
 
 # Defina a branch principal
 main_branch="main"
@@ -11,16 +12,19 @@ git checkout $main_branch
 
 # Atualize a branch principal com o remoto
 git pull origin $main_branch
+git fetch --all
 
 
 # Liste todas as branches locais (exceto a branch principal)
 for branch in $(git branch --format='%(refname:short)' | grep -v "$main_branch"); do
+  git checkout $branch 
+  git pull origin $branch
   echo "Fazendo merge da branch $branch na $main_branch..."
+  git checkout $main_branch
   git merge $branch --no-ff
 done
 
 # Opcional: Faça push da branch principal após os merges
-git push origin $main_branch
 
 for branch in $(git branch --format='%(refname:short)' | grep -v "$main_branch"); do
   echo "Fazendo merge de $main_branch na branch $branch..."
@@ -28,4 +32,5 @@ for branch in $(git branch --format='%(refname:short)' | grep -v "$main_branch")
   git merge $main_branch
 done
 #   git push origin "$branch"
+git push --all
 

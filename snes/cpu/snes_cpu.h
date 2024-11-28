@@ -67,7 +67,7 @@ private:
         uint8_t C : 1; // Carry
         uint8_t E : 1; // Emulation Mode
         uint8_t B : 1; // Break(Emu)
-    } Status;
+    } Regs;
 
     Bus *m_Bus;
 
@@ -76,6 +76,7 @@ private:
     uint8_t m_Cycles; // Cycles to "wait"
     AddressingMode m_AddressingMode;
 
+    void Set_NZ_Flags(uint8_t v);
 
     void AD_Imm_Mem();
     void AD_Imm_Indx();

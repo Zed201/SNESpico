@@ -5,6 +5,7 @@ A Super Nintendo(SNES) emulator in Rasberry PI Pico
 [Reference](https://wiki.superfamicom.org/65816-reference)
 [Manual](https://web.archive.org/web/20221112231515if_/http://archive.6502.org/datasheets/wdc_65816_programming_manual.pdf)
 [OpCodes](https://undisbeliever.net/snesdev/65816-opcodes.html)
+[Program tests](https://github.com/bbbradsmith/SNES_stuff.git)
 
 
 Equipe:

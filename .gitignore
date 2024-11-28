@@ -1,3 +1,8 @@
 build/
 *.cmake
 .vscode/
+# arquivos de roms
+*.smc
+*.sfc
+*.fig
+*.swc

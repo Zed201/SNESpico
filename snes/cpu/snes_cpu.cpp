@@ -74,7 +74,7 @@ void SNES_CPU::Impl_BIT()
 void SNES_CPU::Impl_ASL()
 {
     m_CurrentValue = m_CurrentValue << 1;
-    m_Bus->SetWord(m_CurrentAddress, m_CurrentValue);
+    m_Bus->Ram_SetWord(m_CurrentAddress, m_CurrentValue);
     Set_NZ_Flags(m_CurrentValue);
     Regs.C = m_CurrentAddress & 0x80u;
 }
@@ -95,50 +95,50 @@ void SNES_CPU::AD_Imm_Mem()
 {
     if (!Regs.M || !Regs.X) // 16 bits
     {
-        m_CurrentValue = m_Bus->ReadWord(PC);
+        m_CurrentValue = m_Bus->Ram_ReadWord(PC);
         PC += 2;
     } 
     else // 8 bits
     {
-        m_CurrentValue = m_Bus->ReadByte(PC++);
+        m_CurrentValue = m_Bus->Ram_ReadByte(PC++);
     }
 }
 void SNES_CPU::AD_Abs()
 {
     // Calculate the absolute address with the bank defined by DBR 
     uint32_t address = DBR;
-    address = (address << 16) | m_Bus->ReadWord(PC);
+    address = (address << 16) | m_Bus->Ram_ReadWord(PC);
     PC += 2;
 
     // Read the value in the memory and set the addressing mode
-    m_CurrentValue = m_Bus->ReadByte(address);
+    m_CurrentValue = m_Bus->Ram_ReadByte(address);
     m_AddressingMode = AddressingMode::Absolute;
 }
 void SNES_CPU::AD_Abs_Long()
 {
     // Read the first 2 bytes of the address (low and high)
-    uint32_t address = m_Bus->ReadWord(PC);
+    uint32_t address = m_Bus->Ram_ReadWord(PC);
     PC += 2;
 
     // Read the third byte (bank)
-    address |= static_cast<uint32_t>(m_Bus->ReadByte(PC)) << 16;
+    address |= static_cast<uint32_t>(m_Bus->Ram_ReadByte(PC)) << 16;
     PC++;
 
     // Read the value in the memory and set the addressing mode
-    m_CurrentValue = m_Bus->ReadWord(address);
+    m_CurrentValue = m_Bus->Ram_ReadWord(address);
     m_AddressingMode = AddressingMode::Absolute_Long;
 }
 void SNES_CPU::AD_Dir_Pg()
 {
     // Read the offset
-    uint32_t offset = m_Bus->ReadByte(PC);
+    uint32_t offset = m_Bus->Ram_ReadByte(PC);
     PC++;
 
     // alculate the full address
     uint32_t address = DP + offset;
 
     // Read the value in the memory and set the addressing mode
-    m_CurrentValue = m_Bus->ReadByte(address);
+    m_CurrentValue = m_Bus->Ram_ReadByte(address);
     m_CurrentAddress = address;
     m_AddressingMode = AddressingMode::Direct;
 }

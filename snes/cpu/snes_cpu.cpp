@@ -5,153 +5,185 @@ SNES_CPU::SNES_CPU(Bus *bus)
 {
 }
 
-void SNES_CPU::Impl_ADC()
-{
-    uint32_t res = Accumulator.C + m_CurrentValue + Regs.C; // Result of the addition plus the carry
-
-    // Sets overflow flag if inputs have the same sign but differ from the result's sign.
-    Regs.V = (~(Accumulator.C ^ m_CurrentValue) & (Accumulator.C ^ res)) & 0x80u;
-
-    Set_NZ_Flags(res);
-    
-    Regs.C = res > 0xFF; // Sets the carry flag if the result exceeds 8 bits
-    Accumulator.C = res;
-}
-
 void SNES_CPU::Set_NZ_Flags(uint8_t v)
 {
-    Regs.N = v & 0x80u; // N is set to the MSB of the value
-    Regs.Z = (v == 0); // Z is set to 1 if the value is 0, else it's set to 0
+  Regs.N = v & 0x80u; // N is set to the MSB of the value
+  Regs.Z = (v == 0); // Z is set to 1 if the value is 0, else it's set to 0
 }
 
+/* ADD with carry Implementation */
+void SNES_CPU::Impl_ADC()
+{
+  uint32_t res = Accumulator.C + m_CurrentValue + Regs.C; // Result of the addition plus the carry
+
+  // Sets overflow flag if inputs have the same sign but differ from the result's sign.
+  Regs.V = (~(Accumulator.C ^ m_CurrentValue) & (Accumulator.C ^ res)) & 0x80u;
+
+  Set_NZ_Flags(res);
+  
+  Regs.C = res > 0xFF; // Sets the carry flag if the result exceeds 8 bits
+  Accumulator.C = res;
+}
+
+/* AND Implementation */
 void SNES_CPU::Impl_AND()
 {
-    // Performing the AND operation
-    Accumulator.C = Accumulator.C & m_CurrentValue;
+  // Performing the AND operation
+  Accumulator.C = Accumulator.C & m_CurrentValue;
 
-    // Set the Zero flag if the result is 0
-    Set_NZ_Flags(Accumulator.C);
+  // Set the Zero flag if the result is 0
+  Set_NZ_Flags(Accumulator.C);
 }
 
+/* Test and Reset Memory Bits Against Accumulator Implementation */
 void SNES_CPU::Impl_TRB(){}
 
+/* Test and Set Memory Bits Against Accumulator Implementation */
 void SNES_CPU::Impl_TSB(){}
 
+/* OR Accumulator with Memory Implementation */
 void SNES_CPU::Impl_ORA(){}
 
+/* Rotate Left Implementation */
 void SNES_CPU::Impl_ROL(){}
 
+/* Rotate Right Implementation */
 void SNES_CPU::Impl_ROR(){}
 
+/* Exclusive OR Accumulator with Memory */
 void SNES_CPU::Impl_EOR(){}
 
+/* Jump Implementation */
 void SNES_CPU::Impl_JMP(){}
 
+/* Jump Implementation */
+void SNES_CPU::Impl_JML(){}
+
+/* Jump to subroutine Implementation */
 void SNES_CPU::Impl_JSR(){}
 
+/* Jump to subroutine Implementation */
+void SNES_CPU::Impl_JSL(){}
+
+/* Load Accumulator from memory Implementation */
 void SNES_CPU::Impl_LDA(){}
 
+/* Load Index Reg X from memory Implementation */
 void SNES_CPU::Impl_LDX(){}
 
+/* Load Index Reg Y from memory Implementation */
 void SNES_CPU::Impl_LDY(){}
 
+/* Logical Shift Right Implementation */
 void SNES_CPU::Impl_LSR(){}
 
+/* Increment Implementation */
 void SNES_CPU::Impl_INC()
 {
-    m_CurrentValue++;
-    Set_NZ_Flags(m_CurrentValue);
+  m_CurrentValue++;
+  m_Bus->SetWord(m_CurrentAddress, m_CurrentValue);
+  Set_NZ_Flags(m_CurrentValue);
 }
 
+/* Compare Index Register X with Memory Implementation */
 void SNES_CPU::Impl_CPX(){}
 
+/* Compare Index Register Y with Memory Implementation */
 void SNES_CPU::Impl_CPY(){}
 
+/* Decrement Implementation */
 void SNES_CPU::Impl_DEC()
 {
-    m_CurrentValue--;
-    Set_NZ_Flags(m_CurrentValue);
+  m_CurrentValue--;
+  m_Bus->SetWord(m_CurrentAddress, m_CurrentValue);
+  Set_NZ_Flags(m_CurrentValue);
 }
 
+/* Compare Accumulator with Memory */
 void SNES_CPU::Impl_CMP(){}
 
+/* Test memory bits against accumulator Implementation */
 void SNES_CPU::Impl_BIT()
 {
-    Regs.N = m_CurrentAddress & 0x80u;
-    Regs.V = m_CurrentAddress & 0x40u;
-    Regs.Z = !(m_CurrentAddress & Accumulator.C);
+  Regs.N = m_CurrentAddress & 0x80u;
+  Regs.V = m_CurrentAddress & 0x40u;
+  Regs.Z = !(m_CurrentAddress & Accumulator.C);
 }
 
+/* Arithmetic Shift Left */
 void SNES_CPU::Impl_ASL()
 {
-    m_CurrentValue = m_CurrentValue << 1;
-    m_Bus->Ram_SetWord(m_CurrentAddress, m_CurrentValue);
-    Set_NZ_Flags(m_CurrentValue);
-    Regs.C = m_CurrentAddress & 0x80u;
+  m_CurrentValue = m_CurrentValue << 1;
+  m_Bus->SetWord(m_CurrentAddress, m_CurrentValue);
+  Set_NZ_Flags(m_CurrentValue);
+  Regs.C = m_CurrentAddress & 0x80u;
 }
 
+/* Store Accumulator to Memory */
 void SNES_CPU::Impl_STA(){}
 
+/* Store Index Register X to Memory */
 void SNES_CPU::Impl_STX(){}
 
+/* Store Index Register Y to Memory */
 void SNES_CPU::Impl_STY(){}
 
+/* Store Zero to Memory */
 void SNES_CPU::Impl_STZ(){}
 
+/* Subtract with Borrow from Accumulator */
 void SNES_CPU::Impl_SBC(){}
-
-void SNES_CPU::Impl_ADC(){}
 
 void SNES_CPU::AD_Imm_Mem()
 {
-    if (!Regs.M || !Regs.X) // 16 bits
-    {
-        m_CurrentValue = m_Bus->Ram_ReadWord(PC);
-        PC += 2;
-    } 
-    else // 8 bits
-    {
-        m_CurrentValue = m_Bus->Ram_ReadByte(PC++);
-    }
+  if (!Regs.M || !Regs.X) // 16 bits
+  {
+    m_CurrentValue = m_Bus->ReadWord(PC);
+    PC += 2;
+  } 
+  else // 8 bits
+  {
+    m_CurrentValue = m_Bus->ReadByte(PC++);
+  }
 }
 void SNES_CPU::AD_Abs()
 {
-    // Calculate the absolute address with the bank defined by DBR 
-    uint32_t address = DBR;
-    address = (address << 16) | m_Bus->Ram_ReadWord(PC);
-    PC += 2;
+  // Calculate the absolute address with the bank defined by DBR 
+  uint32_t address = DBR;
+  address = (address << 16) | m_Bus->ReadWord(PC);
+  PC += 2;
 
-    // Read the value in the memory and set the addressing mode
-    m_CurrentValue = m_Bus->Ram_ReadByte(address);
-    m_AddressingMode = AddressingMode::Absolute;
+  // Read the value in the memory and set the addressing mode
+  m_CurrentValue = m_Bus->ReadByte(address);
+  m_AddressingMode = AddressingMode::Absolute;
 }
 void SNES_CPU::AD_Abs_Long()
 {
-    // Read the first 2 bytes of the address (low and high)
-    uint32_t address = m_Bus->Ram_ReadWord(PC);
-    PC += 2;
+  // Read the first 2 bytes of the address (low and high)
+  uint32_t address = m_Bus->ReadWord(PC);
+  PC += 2;
 
-    // Read the third byte (bank)
-    address |= static_cast<uint32_t>(m_Bus->Ram_ReadByte(PC)) << 16;
-    PC++;
+  // Read the third byte (bank)
+  address |= static_cast<uint32_t>(m_Bus->ReadByte(PC)) << 16;
+  PC++;
 
-    // Read the value in the memory and set the addressing mode
-    m_CurrentValue = m_Bus->Ram_ReadWord(address);
-    m_AddressingMode = AddressingMode::Absolute_Long;
+  // Read the value in the memory and set the addressing mode
+  m_CurrentValue = m_Bus->ReadWord(address);
+  m_AddressingMode = AddressingMode::Absolute_Long;
 }
 void SNES_CPU::AD_Dir_Pg()
 {
-    // Read the offset
-    uint32_t offset = m_Bus->Ram_ReadByte(PC);
-    PC++;
+  // Read the offset
+  uint32_t offset = m_Bus->ReadByte(PC);
+  PC++;
 
-    // alculate the full address
-    uint32_t address = DP + offset;
+  // alculate the full address
+  uint32_t address = DP + offset;
 
-    // Read the value in the memory and set the addressing mode
-    m_CurrentValue = m_Bus->Ram_ReadByte(address);
-    m_CurrentAddress = address;
-    m_AddressingMode = AddressingMode::Direct;
+  // Read the value in the memory and set the addressing mode
+  m_CurrentValue = m_Bus->ReadByte(address);
+  m_CurrentAddress = address;
+  m_AddressingMode = AddressingMode::Direct;
 }
 
 void SNES_CPU::AD_Imm_Indx(){}

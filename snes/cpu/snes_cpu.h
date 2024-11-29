@@ -155,7 +155,11 @@ private:
 
     void Impl_JMP();
 
+    void Impl_JML();
+
     void Impl_JSR();
+
+    void Impl_JSL();
 
     void Impl_LDA();
 

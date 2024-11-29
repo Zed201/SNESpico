@@ -7,18 +7,21 @@ SNES_CPU::SNES_CPU(Bus *bus)
 
 void SNES_CPU::Impl_ADC()
 {
-    uint32_t res = Accumulator.C + m_CurrentValue + Regs.C;
+    uint32_t res = Accumulator.C + m_CurrentValue + Regs.C; // Result of the addition plus the carry
 
+    // Sets overflow flag if inputs have the same sign but differ from the result's sign.
     Regs.V = (~(Accumulator.C ^ m_CurrentValue) & (Accumulator.C ^ res)) & 0x80u;
+
     Set_NZ_Flags(res);
-    Regs.C = res > 0xFF;
+    
+    Regs.C = res > 0xFF; // Sets the carry flag if the result exceeds 8 bits
     Accumulator.C = res;
 }
 
 void SNES_CPU::Set_NZ_Flags(uint8_t v)
 {
-    Regs.N = v & 0x80u;
-    Regs.Z = !v;
+    Regs.N = v & 0x80u; // N is set to the MSB of the value
+    Regs.Z = (v == 0); // Z is set to 1 if the value is 0, else it's set to 0
 }
 
 void SNES_CPU::Impl_AND()
@@ -27,7 +30,7 @@ void SNES_CPU::Impl_AND()
     Accumulator.C = Accumulator.C & m_CurrentValue;
 
     // Set the Zero flag if the result is 0
-   Set_NZ_Flags(Accumulator.C);
+    Set_NZ_Flags(Accumulator.C);
 }
 
 void SNES_CPU::Impl_TRB(){}
@@ -54,13 +57,21 @@ void SNES_CPU::Impl_LDY(){}
 
 void SNES_CPU::Impl_LSR(){}
 
-void SNES_CPU::Impl_INC(){}
+void SNES_CPU::Impl_INC()
+{
+    m_CurrentValue++;
+    Set_NZ_Flags(m_CurrentValue);
+}
 
 void SNES_CPU::Impl_CPX(){}
 
 void SNES_CPU::Impl_CPY(){}
 
-void SNES_CPU::Impl_DEC(){}
+void SNES_CPU::Impl_DEC()
+{
+    m_CurrentValue--;
+    Set_NZ_Flags(m_CurrentValue);
+}
 
 void SNES_CPU::Impl_CMP(){}
 

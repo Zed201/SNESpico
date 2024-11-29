@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bus.h>
+#include "bus.h"
 #include <stdint.h>
 
 enum class AddressingMode { // TODO: Trocar para todos os modos de enderaçamento

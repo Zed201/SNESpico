@@ -3,8 +3,7 @@
 #include <stdint.h>
 
 #define KB (1 << 10)
-#define RAM_MAX_MEMORY 128 * KB
-#define ROM_MAX_MEMORY 600 * KB // por enquanto temporario o tamanho, so para teste
+#define RAM_MAX_MEMORY 600 * KB // tamanho temporario so para testar, original era 128kb
 
 #define BYTES_TO_WORD(byteH, byteL) (byteH << 8) | byteL
 
@@ -12,11 +11,16 @@
 #define LOW_BYTES_MASK 0x00FF
 #define HIGH_BYTES_MASK 0xFF00
 
+enum ROM_TYPES {
+
+};
+
 class Bus
 {
 private:
     uint8_t m_Memory[RAM_MAX_MEMORY];
-    uint8_t rom_Memory[ROM_MAX_MEMORY];
+    uint8_t rom_Memory[RAM_MAX_MEMORY];
+    
 
 
     // fazer genericos pois o codigo da ram e do rom para deslocamente vai ser basicamente o mesmo
@@ -47,10 +51,10 @@ public:
     // TODO: identificar os tipos de rom, com base nos endereços
     bool ReadRom(char * file_name);
 
-    uint8_t Rom_ReadByte(uint32_t addr);
-    uint16_t Rom_ReadWord(uint32_t addr);
+    // uint8_t Rom_ReadByte(uint32_t addr);
+    // uint16_t Rom_ReadWord(uint32_t addr);
 
-    void Rom_SetByte(uint32_t addr, uint8_t byte);
-    void Rom_SetWord(uint32_t addr, uint16_t word);
+    // void Rom_SetByte(uint32_t addr, uint8_t byte);
+    // void Rom_SetWord(uint32_t addr, uint16_t word);
 
 };

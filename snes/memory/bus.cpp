@@ -6,7 +6,7 @@
 Bus::Bus()
 {
     memset(m_Memory, 0, RAM_MAX_MEMORY);
-    memset(rom_Memory, 0, ROM_MAX_MEMORY);
+    memset(rom_Memory, 0, RAM_MAX_MEMORY);
 }
 
 Bus::~Bus()
@@ -69,8 +69,8 @@ bool Bus::ReadRom(char* file_name)
         return false;
     }
     fseek(f, 0, SEEK_END);
-    int64_t f_Size = ftell(f);
-    rewind(f);
+    int64_t f_Size = ftell(f) - 512; // os 512 são um cabeçalho para se ignorar
+    fseek(f, 512, SEEK_SET); // move para o inicio mas sem os 512 bytes iniciais
     
     if (f_Size < 0) {
         printf("Erro ao obter tamanho do arquivo\n");
@@ -79,10 +79,10 @@ bool Bus::ReadRom(char* file_name)
     }
 
     // Ler o conteúdo do arquivo
-    rom_Size = fread(rom_Memory, 1, f_Size, f);
+    rom_Size = fread(m_Memory, 1, f_Size, f);
     if (rom_Size != f_Size) {
         perror("Erro ao ler o arquivo");
-        memset(rom_Memory, 0, ROM_MAX_MEMORY);
+        memset(rom_Memory, 0, RAM_MAX_MEMORY);
         rom_Size = 0;
         fclose(f);
         return false;
@@ -90,20 +90,20 @@ bool Bus::ReadRom(char* file_name)
     return true;
 }
 
-uint8_t Bus::Rom_ReadByte(uint32_t addr)
-{
-    return __Read_Byte(addr, rom_Memory);
-}
-uint16_t Bus::Rom_ReadWord(uint32_t addr)
-{
-    return __Read_Word(addr, rom_Memory);
-}
+// uint8_t Bus::Rom_ReadByte(uint32_t addr)
+// {
+//     return __Read_Byte(addr, rom_Memory);
+// }
+// uint16_t Bus::Rom_ReadWord(uint32_t addr)
+// {
+//     return __Read_Word(addr, rom_Memory);
+// }
 
-void Bus::Rom_SetByte(uint32_t addr, uint8_t byte)
-{
-    __Set_Byte(addr, byte, rom_Memory);
-}
-void Bus::Rom_SetWord(uint32_t addr, uint16_t word)
-{
-    __Set_Word(addr, word, rom_Memory);
-}
+// void Bus::Rom_SetByte(uint32_t addr, uint8_t byte)
+// {
+//     __Set_Byte(addr, byte, rom_Memory);
+// }
+// void Bus::Rom_SetWord(uint32_t addr, uint16_t word)
+// {
+//     __Set_Word(addr, word, rom_Memory);
+// }

@@ -1,5 +1,5 @@
 #include "snes_cpu.h"
-#include "utils.h"
+#include "../memory/bus.h"
 
 SNES_CPU::SNES_CPU(Bus *bus)
 {

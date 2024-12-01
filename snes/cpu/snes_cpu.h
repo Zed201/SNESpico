@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bus.h>
+#include <Ram.h>
 #include <stdint.h>
 
 enum class AddressingMode { // TODO: Trocar para todos os modos de enderaçamento
@@ -43,8 +43,8 @@ private:
         uint16_t C;
         struct // just in emulation mode
         {
-            uint8_t A; // Most significative
-            uint8_t B; // less signitifcative
+            uint8_t A; // Less significative
+            uint8_t B; // Most signitifcative
         };
     } Accumulator;
 
@@ -67,95 +67,92 @@ private:
         uint8_t C : 1; // Carry
         uint8_t E : 1; // Emulation Mode
         uint8_t B : 1; // Break(Emu)
-    } Regs;
+    } Flags;
 
-    Bus *m_Bus;
+    Ram *m_Ram;
 
     uint8_t m_CurrentValue;
-    uint16_t m_CurrentAddress;
+    uint24_t m_CurrentAddress;
     uint8_t m_Cycles; // Cycles to "wait"
     AddressingMode m_AddressingMode;
 
     void Set_NZ_Flags(uint8_t v);
 
-    void AD_Imm_Mem();
-    void AD_Imm_Indx();
-    void AD_Imm_8bit();
+    void AD_Imm(uint8_t bit);
     void AD_Rel();
     void AD_Rel_Long();
-    void AD_Dir();
+
+    void AD_Dir(uint8_t bit);
     void AD_Dir_Indx_X();
     void AD_Dir_Indx_Y();
-    void AD_Dir_Indx();
     void AD_Dir_Indx_Ind();
+    void AD_Dir_Ind();
     void AD_Dir_Ind_Indx();
     void AD_Dir_Ind_Long();
     void AD_Dir_Ind_Indx_Long();
-    void AD_Abs();
+
+    void AD_Abs(uint8_t bit);
     void AD_Abs_Indx_X();
     void AD_Abs_Indx_Y();
     void AD_Abs_Long();
+    void AD_Abs_Indx_Ind();
     void AD_Abs_Indx_Long();
-    void AD_Stack_Rel();
-    void AD_Stack_Rel_Ind_Indx();
+    
     void AD_Abs_Ind();
     void AD_Abs_Ind_Long();
-    void AD_Abs_Indx_Ind();
+    
+    void AD_Stack_Rel();
+    void AD_Stack_Rel_Ind_Indx();
     void AD_Imp_Acc();
     void AD_Block_Mv();
-    void AD_Dir_Pg();
 
     void Impl_ADC();
 
     void Impl_AND();
     void Impl_ASL();
 
-    void BLT();
-    void BGE();
-    void BEQ();
-
     void Impl_BIT();
 
-    void BMI();
-    void BNE();
-    void BPL();
-    void BRA();
+    void Impl_BCC();
+    void Impl_BCS();
+    void Impl_BNE();
+    void Impl_BEQ();
+    void Impl_BPL();
+    void Impl_BMI();
+    void Impl_BVC();
+    void Impl_BVS();
+    void Impl_BRA();
+    void Impl_BRL();
 
-    void BRK_SI();
-
-    // TODO: Vai usar?
-    void BRK_PCRL();
-
-    void BVC();
-    void BVS();
-    
-    void CLC();
-    void CLD();
-    void CLI();
-    void CLV();
+    void Impl_BRK();
+    void Impl_COP();
 
     void Impl_CMP();
-
-    void COP();
-
     void Impl_CPX();
-
     void Impl_CPY();
 
-    void Impl_DEC();
 
-    void DEX();
-    void DEY();
+    void Impl_DEC();
+    void Impl_DEC_ACC();
+    void Impl_DEX();
+    void Impl_DEY();
 
     void Impl_INC();
-    void INX();
-    void INY();
+    void Impl_INC_ACC();
+    void Impl_INX();
+    void Impl_INY();
 
     void Impl_EOR();
 
     void Impl_JMP();
+    void Impl_JMP_Abs_Ind();
+    void Impl_JMP_Abs_Indx_Ind();
+    void Impl_JMP_Long();
+    void Impl_JMP_Ind_Long();
 
     void Impl_JSR();
+    void Impl_JSR_Abs_Indx_Ind();
+    void Impl_JSL();
 
     void Impl_LDA();
 
@@ -165,44 +162,43 @@ private:
 
     void Impl_LSR();
 
-    void MVN();
-    void MVP();
-    void NOP();
+    void Impl_MVN();
+    void Impl_MVP();
 
     void Impl_ORA();
 
-    void PEA();
-    void PEI();
-    void PER();
+    void Impl_PEA();
+    void Impl_PEI();
+    void Impl_PER();
 
-    void PHA();
-    void PHB();
-    void PHD();
-    void PHK();
-    void PHP();
-    void PHX();
-    void PHY();
-    void PLA();
-    void PLB();
-    void PLP();
-    void PLX();
-    void PLY();
-    void REP();
+    void Impl_PHA();
+    void Impl_PHB();
+    void Impl_PHD();
+    void Impl_PHK();
+    void Impl_PHP();
+    void Impl_PHX();
+    void Impl_PHY();
+
+    void Impl_PLA();
+    void Impl_PLB();
+    void Impl_PLD();
+    void Impl_PLP();
+    void Impl_PLX();
+    void Impl_PLY();
+
+    void Impl_REP();
 
     void Impl_ROL();
     
     void Impl_ROR();
 
-    void RTI();
-    void RTL();
-    void RTS();
+    void Impl_RTI();
+    void Impl_RTS();
+    void Impl_RTL();
 
     void Impl_SBC();
 
-    void SEC();
-    void SED();
-    void SEI();
-    void SEP();
+    void Impl_SEP();
 
     void Impl_STA();
 
@@ -214,28 +210,16 @@ private:
 
     void Impl_STZ();
 
-    void TAX();
-    void TAY();
-    void TCD();
-    void TCS();
-    void TDC();
-
     void Impl_TRB();
 
     void Impl_TSB();
-
-    void TSC();
-    void TSX();
-    void TXA();
-    void TXS();
-    void TXY();
-    void TYA();
-    void TYX();
 
     void WAI();
     void WDM();
     void XBA();
     void XCE();
 public:
-    SNES_CPU(Bus *bus);
+    SNES_CPU(Ram *ram);
+
+    void Step();
 };

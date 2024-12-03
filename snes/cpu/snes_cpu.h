@@ -67,6 +67,17 @@ private:
         uint8_t C : 1; // Carry
         uint8_t E : 1; // Emulation Mode
         uint8_t B : 1; // Break(Emu)
+
+        operator uint8_t() const 
+        {
+            return *(reinterpret_cast<const uint8_t*>(this));
+        }
+
+        auto& operator=(const uint8_t other)
+        {
+            *(reinterpret_cast<uint8_t*>(this)) = other;
+            return *this;
+        }
     } Flags;
 
     Ram *m_Ram;
@@ -83,8 +94,8 @@ private:
     void AD_Rel_Long();
 
     void AD_Dir(uint8_t bit);
-    void AD_Dir_Indx_X();
-    void AD_Dir_Indx_Y();
+    void AD_Dir_Indx_X(uint8_t bit);
+    void AD_Dir_Indx_Y(uint8_t bit);
     void AD_Dir_Indx_Ind();
     void AD_Dir_Ind();
     void AD_Dir_Ind_Indx();
@@ -92,8 +103,8 @@ private:
     void AD_Dir_Ind_Indx_Long();
 
     void AD_Abs(uint8_t bit);
-    void AD_Abs_Indx_X();
-    void AD_Abs_Indx_Y();
+    void AD_Abs_Indx_X(uint8_t bit);
+    void AD_Abs_Indx_Y(uint8_t bit);
     void AD_Abs_Long();
     void AD_Abs_Indx_Ind();
     void AD_Abs_Indx_Long();

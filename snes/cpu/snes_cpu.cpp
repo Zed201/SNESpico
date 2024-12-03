@@ -32,6 +32,30 @@ void SNES_CPU::Step()
         AD_Dir_Ind();
         Impl_ADC();
         break;
+    case 0x67:
+        AD_Dir_Ind_Long();
+        Impl_ADC();
+        break;
+    case 0x7D:
+        AD_Abs_Indx_X(Flags.M);
+        Impl_ADC();
+        break;
+    case 0x7F:
+        AD_Abs_Indx_Long();
+        Impl_ADC();
+        break;
+    case 0x79:
+        AD_Abs_Indx_Y(Flags.M);
+        Impl_ADC();
+        break;
+    case 0x75:
+        AD_Dir_Indx_X(Flags.M);
+        Impl_ADC();
+        break;
+    case 0x61:
+        AD_Dir_Ind_X();
+        Impl_ADC();
+        break;
 
     case 0x38: //SEC
         Flags.C = 1;
@@ -939,6 +963,8 @@ void SNES_CPU::AD_Imm(uint8_t bit)
     }
     else // 8 bits
         m_CurrentValue = m_Ram->ReadByte(PC++);
+
+    m_AddressingMode = AddressingMode::Immediate;
 }
 
 void SNES_CPU::AD_Dir(uint8_t bit)
@@ -958,7 +984,7 @@ void SNES_CPU::AD_Dir(uint8_t bit)
     m_AddressingMode = AddressingMode::Direct;
 }
 
-void SNES_CPU::AD_Dir_Indx_X()
+void SNES_CPU::AD_Dir_Indx_X(uint8_t bit)
 {
     m_CurrentAddress = DP + m_Ram->ReadByte(PC++);
 
@@ -967,10 +993,10 @@ void SNES_CPU::AD_Dir_Indx_X()
     else
         m_CurrentAddress += X;
 
-    m_CurrentValue = m_Ram->ReadWord(m_CurrentAddress);
+    m_CurrentValue = bit ? m_Ram->ReadByte(m_CurrentAddress) : m_Ram->ReadWord(m_CurrentAddress);
 }
 
-void SNES_CPU::AD_Dir_Indx_Y()
+void SNES_CPU::AD_Dir_Indx_Y(uint8_t bit)
 {
     m_CurrentAddress = DP + m_Ram->ReadByte(PC++);
 
@@ -979,7 +1005,7 @@ void SNES_CPU::AD_Dir_Indx_Y()
     else
         m_CurrentAddress += Y;
 
-    m_CurrentValue = m_Ram->ReadWord(m_CurrentAddress);
+    m_CurrentValue = bit ? m_Ram->ReadByte(m_CurrentAddress) : m_Ram->ReadWord(m_CurrentAddress);
 }
 
 void SNES_CPU::AD_Dir_Indx_Ind()
@@ -990,8 +1016,14 @@ void SNES_CPU::AD_Dir_Indx_Ind()
 void SNES_CPU::AD_Dir_Ind()
 {
     uint8_t operand = m_Ram->ReadByte(PC++);
-    m_CurrentAddress = (DBR << 16) | (m_Ram->ReadByte(DP + operand + 1) << 8) | (m_Ram->ReadByte(DP + operand));
+
+    uint8_t dpLow = (DP & 0x00FF);
+    if (dpLow != 0)
+        m_Cycles++;
+
+    m_CurrentAddress = (DBR << 16) | (m_Ram->ReadByte(dpLow + operand + 1) << 8) | (m_Ram->ReadByte(dpLow + operand));
     m_CurrentValue = Flags.M ? m_Ram->ReadByte(m_CurrentAddress) : m_Ram->ReadWord(m_CurrentAddress);
+    m_AddressingMode = AddressingMode::Direct_Indirect;
 }
 
 void SNES_CPU::AD_Dir_Ind_Indx()
@@ -1002,8 +1034,14 @@ void SNES_CPU::AD_Dir_Ind_Indx()
 void SNES_CPU::AD_Dir_Ind_Long()
 {
     uint8_t operand = m_Ram->ReadByte(PC++);
-    m_CurrentAddress = (m_Ram->ReadByte(DP + operand + 2) << 16) | (m_Ram->ReadByte(DP + operand + 1) << 8) | m_Ram->ReadByte(DP + operand);
-    m_CurrentValue = m_Ram->ReadWord(m_CurrentAddress);
+
+    uint8_t dpLow = (DP & 0x00FF);
+    if (dpLow != 0)
+        m_Cycles++;
+
+    m_CurrentAddress = (m_Ram->ReadByte(dpLow + operand + 2) << 16) | (m_Ram->ReadByte(dpLow + operand + 1) << 8) | m_Ram->ReadByte(dpLow + operand);
+    m_CurrentValue = Flags.M ? m_Ram->ReadByte(m_CurrentAddress) : m_Ram->ReadWord(m_CurrentAddress);
+    m_AddressingMode = AddressingMode::Direct_Indirect_Long;
 }
 
 void SNES_CPU::AD_Dir_Ind_Indx_Long()
@@ -1025,7 +1063,7 @@ void SNES_CPU::AD_Abs(uint8_t bit)
     m_AddressingMode = AddressingMode::Absolute;
 }
 
-void SNES_CPU::AD_Abs_Indx_X()
+void SNES_CPU::AD_Abs_Indx_X(uint8_t bit)
 {
     m_CurrentAddress = (DBR << 16) | m_Ram->ReadWord(PC);
     PC += 2;
@@ -1035,11 +1073,11 @@ void SNES_CPU::AD_Abs_Indx_X()
     else
         m_CurrentAddress += X;
 
-    m_CurrentValue = m_Ram->ReadWord(m_CurrentAddress);
+    m_CurrentValue = bit ? m_Ram->ReadByte(m_CurrentAddress) : m_Ram->ReadWord(m_CurrentAddress);
     DBR = (m_CurrentAddress >> 16); // Atualiza o DBR para os 8 bits mais significativos do endereço
 }
 
-void SNES_CPU::AD_Abs_Indx_Y()
+void SNES_CPU::AD_Abs_Indx_Y(uint8_t bit)
 {
     m_CurrentAddress = (DBR << 16) | m_Ram->ReadWord(PC);
     PC += 2;
@@ -1049,7 +1087,7 @@ void SNES_CPU::AD_Abs_Indx_Y()
     else
         m_CurrentAddress += Y;
 
-    m_CurrentValue = m_Ram->ReadWord(m_CurrentAddress);
+    m_CurrentValue = bit ? m_Ram->ReadByte(m_CurrentAddress) : m_Ram->ReadWord(m_CurrentAddress);
     DBR = (m_CurrentAddress >> 16); // Atualiza o DBR para os 8 bits mais significativos do endereço
 }
 

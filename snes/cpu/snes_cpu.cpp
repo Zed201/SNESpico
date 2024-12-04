@@ -53,7 +53,21 @@ void SNES_CPU::Step()
         Impl_ADC();
         break;
     case 0x61:
-        AD_Dir_Ind_X();
+        AD_Dir_Indx_Ind_X();
+        Impl_ADC();
+        break;
+	case 0x71:
+		AD_Dir_Ind_Indx_Y();
+        Impl_ADC();
+        break;
+	case 0x77:
+		AD_Dir_Ind_Indx_Y();
+        Impl_ADC();
+        break;
+	case 0x63:
+        Impl_ADC();
+        break;
+	case 0x73:
         Impl_ADC();
         break;
 
@@ -145,6 +159,7 @@ void SNES_CPU::Step()
     }
 }
 
+/* ADD with carry Implementation */
 void SNES_CPU::Impl_ADC()
 {
     uint32_t res = Accumulator.C + m_CurrentValue + Flags.C;
@@ -161,6 +176,7 @@ void SNES_CPU::Set_NZ_Flags(uint8_t v)
     Flags.Z = !v;
 }
 
+/* AND Implementation */
 void SNES_CPU::Impl_AND()
 {
     // Performing the AND operation
@@ -170,6 +186,7 @@ void SNES_CPU::Impl_AND()
    Set_NZ_Flags(Accumulator.C);
 }
 
+/* Test and Reset Memory Bits Against Accumulator Implementation */
 void SNES_CPU::Impl_TRB()
 {
     Flags.Z = (m_CurrentValue & Accumulator.C) == 0;
@@ -179,6 +196,7 @@ void SNES_CPU::Impl_TRB()
     m_Ram->WriteWord(m_CurrentAddress, m_CurrentValue);
 }
 
+/* Test and Set Memory Bits Against Accumulator Implementation */
 void SNES_CPU::Impl_TSB()
 {
     Flags.Z = (m_CurrentValue & Accumulator.C) == 0;
@@ -188,6 +206,7 @@ void SNES_CPU::Impl_TSB()
     m_Ram->WriteWord(m_CurrentAddress, m_CurrentValue);
 }
 
+/* OR Accumulator with Memory Implementation */
 void SNES_CPU::Impl_ORA()
 {
     Accumulator.C = Accumulator.C | m_CurrentValue;
@@ -195,6 +214,7 @@ void SNES_CPU::Impl_ORA()
     Set_NZ_Flags(Accumulator.C);
 }
 
+/* Rotate Left Implementation */
 void SNES_CPU::Impl_ROL()
 {
     uint8_t oldValue = m_CurrentValue;
@@ -206,6 +226,7 @@ void SNES_CPU::Impl_ROL()
     Flags.C = oldValue & (1 << 7);
 }
 
+/* Rotate Right Implementation */
 void SNES_CPU::Impl_ROR()
 {
     uint8_t oldValue = m_CurrentValue;
@@ -217,6 +238,7 @@ void SNES_CPU::Impl_ROR()
     Flags.C = oldValue & (1 << 7);
 }
 
+/* Exclusive OR Accumulator with Memory */
 void SNES_CPU::Impl_EOR()
 {
     Accumulator.C = Accumulator.C ^ m_CurrentValue;
@@ -224,6 +246,7 @@ void SNES_CPU::Impl_EOR()
     Set_NZ_Flags(Accumulator.C);
 }
 
+/* Jump Implementation */
 void SNES_CPU::Impl_JMP()
 {
     m_CurrentAddress = m_Ram->ReadWord(PC);
@@ -283,6 +306,7 @@ void SNES_CPU::Impl_JMP_Ind_Long()
     m_Cycles += 5;
 }
 
+/* Jump to subroutine Implementation */
 void SNES_CPU::Impl_JSR()
 {
     m_CurrentAddress = (PBR << 16) | m_Ram->ReadWord(PC);
@@ -310,6 +334,7 @@ void SNES_CPU::Impl_JSR_Abs_Indx_Ind()
     PC = m_CurrentAddress;
 }
 
+/* Jump to subroutine Implementation */
 void SNES_CPU::Impl_JSL()
 {
     m_CurrentAddress = m_Ram->ReadWord(PC);
@@ -326,6 +351,7 @@ void SNES_CPU::Impl_JSL()
     PBR = (m_CurrentAddress >> 16);
 }
 
+/* Load Accumulator from memory Implementation */
 void SNES_CPU::Impl_LDA()
 {
     Accumulator.C = m_CurrentValue;
@@ -333,18 +359,21 @@ void SNES_CPU::Impl_LDA()
     Set_NZ_Flags(Accumulator.C);
 }
 
+/* Load Index Reg X from memory Implementation */
 void SNES_CPU::Impl_LDX()
 {
     X = m_CurrentValue;
     Set_NZ_Flags(X);
 }
 
+/* Load Index Reg Y from memory Implementation */
 void SNES_CPU::Impl_LDY()
 {
     Y = m_CurrentValue;
     Set_NZ_Flags(Y);
 }
 
+/* Logical Shift Right Implementation */
 void SNES_CPU::Impl_LSR()
 {
     uint16_t oldValue = m_CurrentValue;
@@ -357,6 +386,7 @@ void SNES_CPU::Impl_LSR()
     Flags.C = oldValue & 1;
 }
 
+/* Increment Implementation */
 void SNES_CPU::Impl_INC()
 {
     m_CurrentValue = m_CurrentValue + 1;
@@ -385,6 +415,7 @@ void SNES_CPU::Impl_INY()
     Set_NZ_Flags(Y);
 }
 
+/* Decrement Implementation */
 void SNES_CPU::Impl_DEC()
 {
     m_CurrentValue = m_CurrentValue - 1;
@@ -413,6 +444,7 @@ void SNES_CPU::Impl_DEY()
     Set_NZ_Flags(Y);
 }
 
+/* Compare Accumulator with Memory */
 void SNES_CPU::Impl_CMP()
 {
     uint16_t result = Accumulator.C - m_CurrentValue;
@@ -421,6 +453,7 @@ void SNES_CPU::Impl_CMP()
     Flags.C = (Accumulator.C >= m_CurrentValue);
 }
 
+/* Compare Index Register X with Memory Implementation */
 void SNES_CPU::Impl_CPX()
 {
     uint16_t result = X - m_CurrentValue;
@@ -429,6 +462,7 @@ void SNES_CPU::Impl_CPX()
     Flags.C = (X >= m_CurrentValue);
 }
 
+/* Compare Index Register Y with Memory Implementation */
 void SNES_CPU::Impl_CPY()
 {
     uint16_t result = Y - m_CurrentValue;
@@ -437,6 +471,7 @@ void SNES_CPU::Impl_CPY()
     Flags.C = (Y >= m_CurrentValue);
 }
 
+/* Test memory bits against accumulator Implementation */
 void SNES_CPU::Impl_BIT()
 {
     Flags.N = m_CurrentAddress & 0x80u;
@@ -444,6 +479,7 @@ void SNES_CPU::Impl_BIT()
     Flags.Z = !(m_CurrentAddress & Accumulator.C);
 }
 
+/* Arithmetic Shift Left */
 void SNES_CPU::Impl_ASL()
 {
     m_CurrentValue = m_CurrentValue << 1;
@@ -452,26 +488,31 @@ void SNES_CPU::Impl_ASL()
     Flags.C = m_CurrentAddress & 0x80u;
 }
 
+/* Store Accumulator to Memory */
 void SNES_CPU::Impl_STA()
 {
     m_Ram->WriteWord(m_CurrentAddress, Accumulator.C);
 }
 
+/* Store Index Register X to Memory */
 void SNES_CPU::Impl_STX()
 {
     m_Ram->WriteWord(m_CurrentAddress, X);
 }
 
+/* Store Index Register Y to Memory */
 void SNES_CPU::Impl_STY()
 {
     m_Ram->WriteWord(m_CurrentAddress, Y);
 }
 
+/* Store Zero to Memory */
 void SNES_CPU::Impl_STZ()
 {
     m_Ram->WriteWord(m_CurrentAddress, 0);
 }
 
+/* Subtract with Borrow from Accumulator */
 void SNES_CPU::Impl_SBC()
 {
     Accumulator.C = Accumulator.C + (~m_CurrentValue) + Flags.C;
@@ -1045,6 +1086,16 @@ void SNES_CPU::AD_Dir_Ind_Long()
 }
 
 void SNES_CPU::AD_Dir_Ind_Indx_Long()
+{
+
+}
+
+void AD_Dir_Indx_Ind_X()
+{
+	
+}
+
+void AD_Dir_Ind_Indx_Y()
 {
 
 }

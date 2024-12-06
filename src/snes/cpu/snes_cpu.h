@@ -102,6 +102,8 @@ private:
     void AD_Dir_Ind_Indx();
     void AD_Dir_Ind_Long();
     void AD_Dir_Ind_Indx_Long();
+    void AD_Dir_Indx_Ind_X();
+    void AD_Dir_Ind_Indx_Y();
 
     void AD_Abs(uint8_t bit);
     void AD_Abs_Indx_X(uint8_t bit);

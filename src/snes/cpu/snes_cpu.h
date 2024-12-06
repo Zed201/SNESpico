@@ -2,6 +2,7 @@
 
 #include <Ram.h>
 #include <stdint.h>
+#include "../utils.h"
 
 enum class AddressingMode { // TODO: Trocar para todos os modos de enderaçamento
     Immediate, // tem 3 tipos de imediate(memory flag, index flag e 8 bit)

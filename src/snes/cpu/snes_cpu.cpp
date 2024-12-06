@@ -1,5 +1,4 @@
 #include "snes_cpu.h"
-#include "utils.h"
 
 SNES_CPU::SNES_CPU(Ram *ram) : m_Ram(ram)
 {

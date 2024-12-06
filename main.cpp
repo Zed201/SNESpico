@@ -1,30 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include "pico/stdlib.h"
-#include "hardware/pwm.h"
-#include "hardware/adc.h"
-#include "pico/multicore.h"
-#include "hardware/irq.h"
 #include <string.h>
 
-#define D0 0
-#define D1 1
-#define D2 2
-#define D3 3
 #define D4 4
 #define D5 5
 #define D6 6
 #define D7 7
-
 #define RS_PIN 10
 #define EN_PIN 11
+#define BTN 0
 
-#define COMMAND 1
-#define CHARACTER (1 << 1)
-#define STRING (1 << 2)
-
-mutex_t mtx;
+#define TX 1
+#define BPS 5
 
 uint32_t millis()
 {
@@ -33,18 +21,6 @@ uint32_t millis()
 
 void init()
 {
-    gpio_init(D0);
-    gpio_set_dir(D0, GPIO_OUT);
-
-    gpio_init(D1);
-    gpio_set_dir(D1, GPIO_OUT);
-
-    gpio_init(D2);
-    gpio_set_dir(D2, GPIO_OUT);
-
-    gpio_init(D3);
-    gpio_set_dir(D3, GPIO_OUT);
-
     gpio_init(D4);
     gpio_set_dir(D4, GPIO_OUT);
 
@@ -64,126 +40,86 @@ void init()
     gpio_set_dir(EN_PIN, GPIO_OUT);
 }
 
-void lcd_interrupt_handler()
-{
-    mutex_enter_blocking(&mtx);
-    uint8_t type = multicore_fifo_pop_blocking();
-
-    if (type == STRING)
-    {
-        while (multicore_fifo_rvalid())
-        {
-            uint8_t data = multicore_fifo_pop_blocking();
-
-            gpio_put(EN_PIN, true);
-            gpio_put(RS_PIN, true);
-
-            gpio_put(D0, data & 1);
-            gpio_put(D1, data & 2);
-            gpio_put(D2, data & 4);
-            gpio_put(D3, data & 8);
-            gpio_put(D4, data & 0x10);
-            gpio_put(D5, data & 0x20);
-            gpio_put(D6, data & 0x40);
-            gpio_put(D7, data & 0x80);
-
-            gpio_put(EN_PIN, false);
-            gpio_put(RS_PIN, true);
-            busy_wait_ms(5);
-        }
-    }
-    else if (type == COMMAND)
-    {
-        uint8_t data = multicore_fifo_pop_blocking();
-
-        gpio_put(EN_PIN, true);
-        gpio_put(RS_PIN, false);
-
-        gpio_put(D0, data & 1);
-        gpio_put(D1, data & 2);
-        gpio_put(D2, data & 4);
-        gpio_put(D3, data & 8);
-        gpio_put(D4, data & 0x10);
-        gpio_put(D5, data & 0x20);
-        gpio_put(D6, data & 0x40);
-        gpio_put(D7, data & 0x80);
-
-        gpio_put(EN_PIN, false);
-        busy_wait_ms(5);
-    }
-    else if (type == CHARACTER)
-    {
-        uint8_t data = multicore_fifo_pop_blocking();
-
-        gpio_put(EN_PIN, true);
-        gpio_put(RS_PIN, true);
-
-        gpio_put(D0, data & 1);
-        gpio_put(D1, data & 2);
-        gpio_put(D2, data & 4);
-        gpio_put(D3, data & 8);
-        gpio_put(D4, data & 0x10);
-        gpio_put(D5, data & 0x20);
-        gpio_put(D6, data & 0x40);
-        gpio_put(D7, data & 0x80);
-
-        gpio_put(EN_PIN, false);
-        gpio_put(RS_PIN, true);
-        busy_wait_ms(5);
-    }
-    
-    mutex_exit(&mtx);
-    multicore_fifo_clear_irq();
-}
-
-void lcd_core1()
-{
-    multicore_fifo_clear_irq();
-    irq_set_exclusive_handler(SIO_IRQ_PROC1, lcd_interrupt_handler);
-    irq_set_enabled(SIO_IRQ_PROC1, true);
-
-    while (true)
-    {
-        tight_loop_contents();
-    }
-}
-
 void send_command(uint8_t command)
 {
-    mutex_enter_blocking(&mtx);
+    gpio_put(EN_PIN, true);
+    gpio_put(RS_PIN, false);
 
-    multicore_fifo_push_blocking(COMMAND);
-    multicore_fifo_push_blocking(command);
+    gpio_put(D4, command & 0x10);
+    gpio_put(D5, command & 0x20);
+    gpio_put(D6, command & 0x40);
+    gpio_put(D7, command & 0x80);
 
-    mutex_exit(&mtx);
+    gpio_put(EN_PIN, false);
+    gpio_put(RS_PIN, false);
+
+    sleep_ms(5);
+
+    gpio_put(EN_PIN, true);
+    gpio_put(RS_PIN, false);
+
+    gpio_put(D4, command & 0x01);
+    gpio_put(D5, command & 0x02);
+    gpio_put(D6, command & 0x04);
+    gpio_put(D7, command & 0x08);
+
+    gpio_put(EN_PIN, false);
+    gpio_put(RS_PIN, false);
+
+    sleep_ms(5);
 }
 
 void send_character(uint8_t character)
 {
-    mutex_enter_blocking(&mtx);
+    gpio_put(EN_PIN, true);
+    gpio_put(RS_PIN, true);
 
-    multicore_fifo_push_blocking(CHARACTER);
-    multicore_fifo_push_blocking(character);
+    gpio_put(D4, character & 0x10);
+    gpio_put(D5, character & 0x20);
+    gpio_put(D6, character & 0x40);
+    gpio_put(D7, character & 0x80);
 
-    mutex_exit(&mtx);
+    gpio_put(EN_PIN, false);
+    gpio_put(RS_PIN, true);
+
+    sleep_ms(5);
+
+    gpio_put(EN_PIN, true);
+    gpio_put(RS_PIN, true);
+
+    gpio_put(D4, character & 0x01);
+    gpio_put(D5, character & 0x02);
+    gpio_put(D6, character & 0x04);
+    gpio_put(D7, character & 0x08);
+
+    gpio_put(EN_PIN, false);
+    gpio_put(RS_PIN, true);
+
+    sleep_ms(5);
 }
 
 void send_string(const char *str)
 {
     uint32_t size = strlen(str);
 
-    uint32_t i = 0;
-    while (i < size)
-    {
-        mutex_enter_blocking(&mtx);
-    
-        multicore_fifo_push_blocking(STRING);
+    for (uint32_t i = 0; i < size; i++)
+        send_character(str[i]);
+}
 
-        for (uint32_t j = 0; j < 4 && i < size; j++, i++)
-            multicore_fifo_push_blocking(str[i]);
-    
-        mutex_exit(&mtx);
-    }
+bool btnStateOld = false, pressed = false;
+uint32_t tDown, tUp;
+
+void btnIrq(uint gpio, uint32_t eventMask)
+{
+    bool state = gpio_get(BTN);
+
+    if (!state) tDown = millis();
+    else tUp = millis();
+
+    if (btnStateOld && !state && int(tDown - tUp) > 25)
+        pressed = true;
+
+    btnStateOld = state;
 }
 
 int main() 
@@ -192,21 +128,73 @@ int main()
 
     init();
 
-    mutex_init(&mtx);
+    uint32_t currentChar = 0;
 
-    multicore_launch_core1(lcd_core1);
+    gpio_put(EN_PIN, true);
+    gpio_put(RS_PIN, false);
 
-    const uint32_t size = 12;
-    char str[size] = "Hello World";
+    gpio_put(D4, false);
+    gpio_put(D5, true);
+    gpio_put(D6, false);
+    gpio_put(D7, false);
 
-    sleep_ms(10000);
+    gpio_put(EN_PIN, false);
+    gpio_put(RS_PIN, false);
 
-    send_command(0x0f);
+    sleep_ms(10);
+
+    send_command(0x0E);
     send_command(0x01);
+
+    const char str[] = "Lab. Hardware";
     send_string(str);
+
+    send_command(0xC0);
+
+    for (uint8_t i = 0; i < 8; i++)
+        send_character((currentChar >> (7 - i)) & 1 ? '1' : '0');
+
+    send_command(0x02);
+
+    gpio_init(BTN);
+    gpio_set_dir(BTN, GPIO_IN);
+    gpio_pull_up(BTN);
+    gpio_set_irq_enabled_with_callback(BTN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, btnIrq);
+
+    gpio_init(TX);
+    gpio_set_dir(TX, GPIO_OUT);
 
     while(true)
     {
+        if (pressed)
+        {
+            // Bit start
+            gpio_put(TX, true);
+            sleep_ms(1000 / BPS);
+
+            currentChar = (currentChar + 1) % strlen(str);
+
+            send_command(0xC0);
+
+            bool bit = false;
+            for (uint8_t i = 0; i < 8; i++)
+            {
+                bit = (str[currentChar] >> (7 - i)) & 1;
+                send_character(bit ? '1' : '0');
+                gpio_put(TX, bit);
+                sleep_ms(1000 / BPS);
+            }
+
+            send_command(0x02);
+
+            for (uint8_t i = 0; i < currentChar; i++)
+                send_command(0x14);
+
+            pressed = false;
+
+            gpio_put(TX, false);
+        }
+
     }
 
     return 0;

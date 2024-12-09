@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
 
+#define ROM_PAGE_SIZE 16 * 1024 // 16KB de página
+
 enum class RomType: uint8_t 
 {
     LoRom,
@@ -12,11 +14,14 @@ enum class RomType: uint8_t
 class Rom
 {
 private:
-    unsigned char m_Stream[16 * 1024]; // 16KB de página
-    RomType m_Type;
+    FileHandle m_File;
+    uint8_t m_Stream[ROM_PAGE_SIZE];
+    uint64_t m_BaseAddr = 0;
+    uint8_t m_PagesCount = 0;
 public:
-    Rom(const char *filename);
+    RomType Load(const char* filename);
 
-    inline unsigned char* GetPage() { return m_Stream; }
-    inline RomType GetType() { return m_Type; }
+    uint8_t* LoadPage(uint64_t addr);
+    inline uint8_t* GetPage() { return m_Stream; }
+    inline bool InRange(uint64_t addr) { return addr >= m_BaseAddr && addr < (m_BaseAddr + ROM_PAGE_SIZE); }
 };

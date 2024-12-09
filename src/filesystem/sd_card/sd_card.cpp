@@ -2,7 +2,7 @@
 #include "hardware/gpio.h"
 #include "pico/time.h"
 #include "hardware/spi.h"
-#include <stdarg.h>
+//#include <string.h>
 
 #define SPI_PORT spi0
 #define SPI_BAUD 1000000
@@ -14,44 +14,7 @@
 
 #define BLOCK_LEN 512
 
-#define CRC7Poly 0x89 // Valor do polinômio do CRC7
-
-uint32_t SDCard::s_CurrentAddr = 0;
-
-uint8_t SDCard::GenCRC7(uint8_t cmd, uint32_t arg)
-{
-    uint8_t crc = 0;
-
-    crc = (crc << 1) ^ cmd;
-    if (crc & 0x80)
-        crc ^= CRC7Poly;
-    for (uint8_t j = 1; j < 8; j++) 
-    {
-        crc <<= 1;
-        if (crc & 0x80)
-            crc ^= CRCPoly;
-    }
-
-    for (uint8_t i = 0; i < sizeof(uint32_t); i++)
-    {
-        crc = (crc << 1) ^ static_cast<uint8_t*>(&arg)[sizeof(uint32_t) - i - 1];
-        if (crc & 0x80)
-            crc ^= CRC7Poly;
-        for (uint8_t j = 1; j < 8; j++) 
-        {
-            crc <<= 1;
-            if (crc & 0x80)
-                crc ^= CRCPoly;
-        }
-    }
-
-    return crc;
-}
-
-bool SDCard::CheckCRC16(const uint8_t *data, uint16_t CRC16)
-{
-    return false;
-}
+uint64_t SDCard::s_CurrentAddr = 0;
 
 ///////////////////////////////////
 //      - RESPONSE FORMATS -
@@ -71,19 +34,20 @@ uint8_t SDCard::SendCommand(uint8_t cmd, uint32_t arg)
 {
     uint8_t response = 0xFF; // Resposta inicial (invalida)
 
-    gpio_put(SPI_CS_PIN, 0); // Ativa o cartão (CS = 0)
+    gpio_put(CSn, 0); // Ativa o cartão (CS = 0)
 
     // Envia o comando e argumento
-    spi_write_blocking(SPI_PORT, (0x4F & cmd), 1);
+    uint8_t src = (0x4F & cmd);
+    spi_write_blocking(SPI_PORT, &src, 1);
     spi_write_blocking(SPI_PORT, (uint8_t *)&arg, 4);
     
-    uint8_t crc = GetCRC7((0x4F & cmd), arg);
+    uint8_t crc = 0x00;
     spi_write_blocking(SPI_PORT, &crc, 1);
     
     // Recebe a resposta do cartão
     spi_read_blocking(SPI_PORT, 0xFF, &response, 1);
 
-    gpio_put(SPI_CS_PIN, 1); // Desativa o Chip Select (CS = 1)
+    gpio_put(CSn, 1); // Desativa o Chip Select (CS = 1)
 
     return response;
 }
@@ -100,20 +64,27 @@ void SDCard::Init()
     gpio_set_dir(CSn, GPIO_OUT);
     gpio_put(CSn, true);
 
-    // Resetando SD Card
-    uint8_t response = SendCommand(0x00, 0);
+    // Resetando SD Card e entrando em modo SPI
+    uint8_t response = 0xFF; // Resposta inicial (invalida)
+
+    gpio_put(CSn, 0); // Ativa o cartão (CS = 0)
+
+    // Envia o comando e argumento
+    uint8_t cmd0 = (0x4F & 0x00);
+    uint32_t arg = 0x00;
+    uint8_t crc7 = 0x95;
+    spi_write_blocking(SPI_PORT, &cmd0, 1);
+    spi_write_blocking(SPI_PORT, reinterpret_cast<uint8_t*>(&arg), 4);
+    spi_write_blocking(SPI_PORT, &crc7, 1);
+    
+    // Recebe a resposta do cartão
+    spi_read_blocking(SPI_PORT, 0xFF, &response, 1);
+
+    gpio_put(CSn, 1); // Desativa o Chip Select (CS = 1)
 
     if (response != 0x01)
     {
-        // Erro ao tentar resetar SD card
-        return;
-    }
-
-    response = SendCommand(0x01, 0);
-
-    if (response != 0x00)
-    {
-        // Erro ao tentar colocar em modo SPI
+        // Erro ao tentar resetar e entrar no modo SPI do SD card
         return;
     }
 }
@@ -125,11 +96,11 @@ void SDCard::Shutdown()
     spi_deinit(SPI_PORT);
 }
 
-uint64_t SDCard::Read(const uint8_t *dst, uint64_t len)
+uint64_t SDCard::Read(uint8_t *dst, uint64_t len)
 {
     uint64_t bytesReaded = 0;
     // Envia CMD18 (Ler múltiplos blocos)
-    response = SendCommand(0x12, s_CurrentAddr); // CMD18
+    uint8_t response = SendCommand(0x12, s_CurrentAddr); // CMD18
     if (response != 0x00) 
     { 
         // Erro ao tentar ler do endereço atual
@@ -140,13 +111,7 @@ uint64_t SDCard::Read(const uint8_t *dst, uint64_t len)
     while (len != 0)
     {
         spi_read_blocking(SPI_PORT, 0xFF, dst, len >= BLOCK_LEN ? BLOCK_LEN : len);
-        spi_read_blocking(SPI_PORT, 0xFF, CRC16, 2);
-
-        if (!CheckCRC16(dst, CRC16))
-        {
-            // Erro nos dados
-            break;
-        }
+        spi_read_blocking(SPI_PORT, 0xFF, reinterpret_cast<uint8_t*>(&CRC16), 2);
 
         if (len >= BLOCK_LEN)
         {
@@ -176,7 +141,7 @@ uint64_t SDCard::Write(const uint8_t *src, uint64_t len)
     uint64_t bytesWritten = 0;
     
     // Envia CMD25 (Escrever múltiplos blocos)
-    response = SendCommand(0x19, s_CurrentAddr); // CMD18
+    uint8_t response = SendCommand(0x19, s_CurrentAddr); // CMD18
     if (response != 0x00) 
     { 
         // Erro ao tentar escrever no endereço atual
@@ -184,26 +149,28 @@ uint64_t SDCard::Write(const uint8_t *src, uint64_t len)
     }
 
     uint8_t startToken = 0xFC, stopToken = 0xFD;
-
     while (len != 0)
     {
         spi_write_blocking(SPI_PORT, &startToken, 1);
-        spi_write_blocking(SPI_PORT, src, len >= BLOCK_LEN ? BLOCK_LEN : len);
 
         if (len >= BLOCK_LEN)
         {
+            spi_write_blocking(SPI_PORT, src, BLOCK_LEN);
             src += BLOCK_LEN;
             bytesWritten += BLOCK_LEN;
             len -= BLOCK_LEN;
         }
         else
         {
+            uint8_t padding[BLOCK_LEN] = {0};
+            memcpy(padding, src, len);
+            spi_write_blocking(SPI_PORT, padding, BLOCK_LEN);
             src += len;
             bytesWritten += len;
             len = 0;
         }
 
-        while(spi_is_busy())
+        while(spi_is_busy(SPI_PORT))
             sleep_us(100); // Espera 100 microsegundos
     }
 

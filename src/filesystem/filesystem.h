@@ -6,21 +6,21 @@ public:
     static void Init();
     static void Shutdown();
 
-    int CreateDir(const char* dirName);
-    int RemoveDir(const char* dirName);
+    static int CreateDir(const char* dirName);
+    static int RemoveDir(const char* dirName);
 
-    //list<const char*> ListDir(const char* dirName);
+    //static list<const char*> ListDir(const char* dirName);
 
-    int CreateFile(const char* filename);
-    int RemoveFile(const char* filename);
-    bool FileExists(const char* filename);
+    static int CreateFile(const char* filename);
+    static int RemoveFile(const char* filename);
+    static bool FileExists(const char* filename);
 
-    int GetFreeSpace();
-    int GetTotalSpace();
+    static int GetFreeSpace();
+    static int GetTotalSpace();
 
-    const char* GetCurrentDir();
-    int ChangeDir(const char* filename);
+    static const char* GetCurrentDir();
+    static int ChangeDir(const char* filename);
 
-    int SetPermissions(const char* path, int permissions);
-    int GetPermissions(const char* path);
+    static int SetPermissions(const char* path, int permissions);
+    static int GetPermissions(const char* path);
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Ram.h>
+#include <bus.h>
 #include <stdint.h>
 #include "../utils.h"
 
@@ -81,7 +81,7 @@ private:
         }
     } Flags;
 
-    Ram *m_Ram;
+    Bus *m_Bus;
 
     uint8_t m_CurrentValue;
     uint24_t m_CurrentAddress;
@@ -233,7 +233,7 @@ private:
     void XBA();
     void XCE();
 public:
-    SNES_CPU(Ram *ram);
+    SNES_CPU(Bus *bus);
 
     void Step();
 };

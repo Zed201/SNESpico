@@ -91,7 +91,7 @@ void list<type>::push_back(type elem)
 template <typename type>
 void list<type>::push_back(node<type> *n)
 {
-    if (n == nullptr || n->origin == this || n->origin != nullptr)
+    if (n == nullptr || n->origin == this)
         return;
     
     n->origin = this;
@@ -116,7 +116,7 @@ void list<type>::push_front(type elem)
 template <typename type>
 void list<type>::push_front(node<type> *n)
 {
-    if (n == nullptr || n->origin == this || n->origin != nullptr)
+    if (n == nullptr || n->origin == this)
         return;
     
     n->origin = this;
@@ -248,7 +248,7 @@ type list<type>::pop_front()
 template <typename type> 
 node<type>* list<type>::pop_node(node<type> *n)
 {
-    if (n == nullptr || n == head || n == tail || !in_list(n))
+    if (n == nullptr || n->origin != this)
         return nullptr;
     
     n->prev_node->next_node = n->next_node;

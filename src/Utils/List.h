@@ -8,9 +8,6 @@ for (node<type> *n = l.begin(); n != l.end(); n = n->next())
 
 */
 
-#include <memory>
-#include <stdexcept>
-
 template <typename type>
 class list;
 

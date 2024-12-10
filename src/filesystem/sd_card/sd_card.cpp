@@ -14,8 +14,6 @@
 
 #define BLOCK_LEN 512
 
-uint64_t SDCard::s_CurrentAddr = 0;
-
 ///////////////////////////////////
 //      - RESPONSE FORMATS -
 //
@@ -96,11 +94,11 @@ void SDCard::Shutdown()
     spi_deinit(SPI_PORT);
 }
 
-uint64_t SDCard::Read(uint8_t *dst, uint64_t len)
+uint64_t SDCard::Read(uint64_t addr, uint8_t *dst, uint64_t len)
 {
     uint64_t bytesReaded = 0;
     // Envia CMD18 (Ler múltiplos blocos)
-    uint8_t response = SendCommand(0x12, s_CurrentAddr); // CMD18
+    uint8_t response = SendCommand(0x12, addr); // CMD18
     if (response != 0x00) 
     { 
         // Erro ao tentar ler do endereço atual
@@ -136,12 +134,12 @@ uint64_t SDCard::Read(uint8_t *dst, uint64_t len)
     return bytesReaded;
 }
 
-uint64_t SDCard::Write(const uint8_t *src, uint64_t len)
+uint64_t SDCard::Write(uint64_t addr, const uint8_t *src, uint64_t len)
 {
     uint64_t bytesWritten = 0;
     
     // Envia CMD25 (Escrever múltiplos blocos)
-    uint8_t response = SendCommand(0x19, s_CurrentAddr); // CMD18
+    uint8_t response = SendCommand(0x19, addr); // CMD18
     if (response != 0x00) 
     { 
         // Erro ao tentar escrever no endereço atual

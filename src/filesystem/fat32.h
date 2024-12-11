@@ -5,7 +5,7 @@
 class FAT32
 {
 private:
-    uint8_t* m_BlockBuffer; // Temporary buffer for sector I/O
+    uint8_t *m_BlockBuffer; // Temporary buffer for sector I/O
 
     uint8_t m_SectorsPerCluster;
     uint8_t m_NumFATs;
@@ -31,6 +31,6 @@ public:
     void FreeClusterChain(uint32_t startCluster);
 
     uint32_t ClusterToSector(uint32_t cluster) const;
-    bool ReadCluster(uint32_t cluster, uint8_t* buffer);
-    bool WriteCluster(uint32_t cluster, const uint8_t* buffer);
+    bool ReadCluster(uint32_t cluster, uint8_t *buffer);
+    bool WriteCluster(uint32_t cluster, const uint8_t *buffer);
 };

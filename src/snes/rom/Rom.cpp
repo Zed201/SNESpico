@@ -27,9 +27,9 @@ RomType Rom::Load(const char *filename)
         return RomType::ExHiRom;
 }
 
-uint8_t *Rom::LoadPage(uint64_t addr)
+uint8_t *Rom::LoadPage(uint24_t addr)
 {
-    uint64_t pageIndex = addr / ROM_PAGE_SIZE;
+    uint24_t pageIndex = addr / ROM_PAGE_SIZE;
     m_File.Seek(pageIndex * ROM_PAGE_SIZE, 0x0000);
     m_File.Read(m_Stream, ROM_PAGE_SIZE);
     return m_Stream;

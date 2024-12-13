@@ -64,10 +64,93 @@ void SNES_CPU::Step()
         Impl_ADC();
         break;
 	case 0x63:
+        AD_Stack_Rel();
         Impl_ADC();
         break;
 	case 0x73:
+        AD_Stack_Rel_Ind_Indx();
         Impl_ADC();
+        break;
+
+    case 0x29:
+        AD_Imm(Flags.M);
+        Impl_AND();
+        break;
+    case 0x2D:
+        AD_Abs(Flags.M);
+        Impl_AND();
+        break;
+    case 0x2F:
+        AD_Abs_Long();
+        Impl_AND();
+        break;
+    case 0x25:
+        AD_Dir(Flags.M);
+        Impl_AND();
+        break;
+    case 0x32:
+        AD_Dir_Ind();
+        Impl_AND();
+        break;
+    case 0x27:
+        AD_Dir_Ind_Long();
+        Impl_AND();
+        break;
+    case 0x3D:
+        AD_Abs_Indx_X(Flags.M);
+        Impl_AND();
+        break;
+    case 0x3F:
+        AD_Abs_Indx_Long();
+        Impl_AND();
+        break;
+    case 0x39:
+        AD_Abs_Indx_Y(Flags.M);
+        Impl_AND();
+        break;
+    case 0x35:
+        AD_Dir_Indx_X(Flags.M);
+        Impl_AND();
+        break;
+    case 0x21:
+        AD_Dir_Ind();
+        Impl_AND();
+        break;
+    case 0x31:
+        AD_Dir_Ind_Indx_Y();
+        Impl_AND();
+        break;
+    case 0x37:
+        AD_Dir_Ind_Indx_Long();
+        Impl_AND();
+        break;
+    case 0x23:
+        AD_Stack_Rel();
+        Impl_AND();
+        break;
+    case 0x33:
+        AD_Stack_Rel_Ind_Indx();
+        Impl_AND();
+        break;
+
+    case 0x0A:
+        Impl_ASL_ACC();
+        break;
+    case 0x0E:
+        AD_Abs(Flags.M);
+        Impl_ASL();
+        break;
+    case 0x06:
+        AD_Dir(Flags.M);
+        Impl_ASL();
+        break;
+    case 0x1E:
+        AD_Abs_Indx_X(Flags.M);
+        Impl_ASL();
+        break;
+    case 0x16:
+        AD_Dir_Indx_X(Flags.M);
+        Impl_ASL();
         break;
 
     case 0x38: //SEC
@@ -481,10 +564,22 @@ void SNES_CPU::Impl_BIT()
 /* Arithmetic Shift Left */
 void SNES_CPU::Impl_ASL()
 {
+    Flags.C = Flags.M ? (m_CurrentValue & 0x0080) != 0 
+                        : (m_CurrentValue & 0x8000) != 0;
+
     m_CurrentValue = m_CurrentValue << 1;
-    m_Bus->WriteWord(m_CurrentAddress, m_CurrentValue);
     Set_NZ_Flags(m_CurrentValue);
-    Flags.C = m_CurrentAddress & 0x80u;
+
+    Flags.M ? m_Bus->WriteByte(m_CurrentAddress, m_CurrentValue) 
+        : m_Bus->WriteWord(m_CurrentAddress, m_CurrentValue);
+}
+
+void SNES_CPU::Impl_ASL_ACC()
+{
+    Flags.C = Flags.M ? (Accumulator.C & 0x0080) != 0 
+                        : (Accumulator.C & 0x8000) != 0;
+    Accumulator.C = Accumulator.C << 1;
+    Set_NZ_Flags(Accumulator.C);
 }
 
 /* Store Accumulator to Memory */

@@ -124,6 +124,7 @@ private:
 
     void Impl_AND();
     void Impl_ASL();
+    void Impl_ASL_ACC();
 
     void Impl_BIT();
 
